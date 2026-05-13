@@ -152,12 +152,12 @@ textarea {
   color: #284231;
 }
 
-.task-list, .url-list, .file-list, .memory-list, .step-list, .history-list {
+.task-list, .url-list, .file-list, .step-list, .history-list {
   display: grid;
   gap: 10px;
 }
 
-.task-row, .url-row, .file-row, .memory-row, .step-row, .history-row {
+.task-row, .url-row, .file-row, .step-row, .history-row {
   display: flex;
   gap: 12px;
   align-items: center;
@@ -212,17 +212,75 @@ small {
   color: #216144;
 }
 
+.calendar-panel {
+  overflow: hidden;
+}
+
+.calendar-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.calendar-toolbar h2 {
+  margin-bottom: 4px;
+}
+
+.calendar-toolbar p {
+  margin: 0;
+  color: #647064;
+}
+
+.calendar-actions, .editor-actions, .editor-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.primary-button.compact {
+  min-height: 38px;
+  padding: 0 14px;
+}
+
+.today-button, .danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  border-radius: 8px;
+  border: 1px solid #cbd8c8;
+  background: #fff;
+  color: #203124;
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.danger-button {
+  color: #9b1c1c;
+  border-color: #f0c3bc;
+  background: #fff7f5;
+  gap: 7px;
+}
+
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, minmax(120px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(7, minmax(150px, 1fr));
+  gap: 10px;
   overflow-x: auto;
+  padding-bottom: 4px;
 }
 
 .day-column {
-  min-height: 220px;
-  background: #f8faf7;
-  border: 1px solid #e0e8dc;
+  min-height: 260px;
+  background: linear-gradient(180deg, #fbfcfa 0%, #f3f7f0 100%);
+  border: 1px solid #dfe8dc;
   border-radius: 8px;
   padding: 10px;
 }
@@ -230,52 +288,116 @@ small {
 .day-head {
   display: flex;
   justify-content: space-between;
-  font-weight: 700;
+  align-items: center;
+  font-weight: 800;
   margin-bottom: 10px;
+}
+
+.day-head button, .day-date {
+  border: 0;
+  border-radius: 999px;
+  background: #e9f1e8;
+  color: #284231;
+  padding: 5px 9px;
+  font-weight: 700;
+}
+
+.day-head button {
+  cursor: pointer;
+}
+
+.empty-day {
+  border: 1px dashed #d1ddcd;
+  border-radius: 8px;
+  color: #7a8579;
+  font-size: 13px;
+  padding: 12px;
+  text-align: center;
 }
 
 .event {
   width: 100%;
   display: grid;
-  gap: 2px;
+  gap: 4px;
   text-align: left;
-  border: 0;
+  border: 1px solid #e1e9de;
   border-left: 4px solid currentColor;
-  border-radius: 6px;
-  padding: 8px;
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px;
   margin-bottom: 8px;
   cursor: pointer;
+  box-shadow: 0 1px 2px rgba(23, 32, 24, 0.06);
 }
 
-.event span {
+.event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(23, 32, 24, 0.08);
+}
+
+.event:disabled {
+  cursor: default;
+}
+
+.event:disabled:hover {
+  transform: none;
+  box-shadow: 0 1px 2px rgba(23, 32, 24, 0.06);
+}
+
+.event span, .event small {
   font-size: 12px;
-  opacity: 0.75;
+  opacity: 0.78;
 }
 
-.detail-strip {
-  margin-top: 12px;
+.calendar-editor {
+  margin-top: 14px;
   border-top: 1px solid #e0e8dc;
-  padding-top: 12px;
+  padding-top: 14px;
 }
 
-.memory-form {
+.editor-head {
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.editor-head h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.editor-grid {
   display: grid;
-  grid-template-columns: 140px 1fr 2fr 42px;
-  gap: 10px;
-  margin-bottom: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
-.memory-form input, .memory-form select, .memory-row input {
+.editor-grid label {
+  display: grid;
+  gap: 6px;
+  color: #4d5a4d;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.editor-grid input, .editor-grid select, .editor-grid textarea {
   border: 1px solid #c8d5c5;
   border-radius: 8px;
   padding: 10px;
   width: 100%;
+  background: #fff;
 }
 
-.memory-row > div {
-  flex: 1;
-  display: grid;
-  gap: 6px;
+.editor-grid textarea {
+  min-height: 86px;
+}
+
+.wide-field {
+  grid-column: 1 / -1;
+}
+
+.editor-actions {
+  justify-content: flex-end;
+  margin-top: 12px;
 }
 
 .error {
@@ -478,11 +600,23 @@ small {
     margin: 0;
   }
 
-  .input-panel, .two-column, .memory-form {
+  .input-panel, .two-column {
     grid-template-columns: 1fr;
+  }
+
+  .calendar-toolbar {
+    display: grid;
+  }
+
+  .calendar-actions {
+    justify-content: flex-start;
   }
 
   .calendar-grid {
     grid-template-columns: repeat(7, 170px);
+  }
+
+  .editor-grid {
+    grid-template-columns: 1fr;
   }
 }

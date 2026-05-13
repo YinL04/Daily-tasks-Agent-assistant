@@ -79,6 +79,7 @@ export default function Dashboard() {
 
       <TaskInput value={input} loading={loading} onChange={setInput} onSubmit={submit} />
       {error && <p className="error">{error}</p>}
+      <CalendarView refreshKey={result?.runId} />
       {result && (
         <>
           {/* LLM Usage Report from this run */}
@@ -124,7 +125,6 @@ export default function Dashboard() {
             <TaskList tasks={result.tasks} />
             <UrlList urls={result.urls} />
           </div>
-          <CalendarView events={result.calendarEvents} />
           <div className="two-column">
             <PlanFilePanel files={result.files} />
             <section className="panel">

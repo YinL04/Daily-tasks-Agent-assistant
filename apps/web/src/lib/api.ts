@@ -22,6 +22,13 @@ export interface CalendarEvent {
   description: string;
 }
 
+export interface StoredCalendarEvent extends CalendarEvent {
+  source: "agent" | "manual";
+  sourceRunId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface UrlReference {
   title: string;
   url: string;
@@ -119,13 +126,6 @@ export function testLLMConnection() {
   return request<LLMConnectionTest>("/api/agent/llm-status");
 }
 
-export const memoryApi = {
-  list: () => request<MemoryItem[]>("/api/memories"),
-  create: (data: Omit<MemoryItem, "id" | "createdAt" | "updatedAt">) => request<MemoryItem>("/api/memories", { method: "POST", body: JSON.stringify(data) }),
-  update: (id: string, data: Partial<MemoryItem>) => request<MemoryItem>(`/api/memories/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
-  delete: (id: string) => request<void>(`/api/memories/${id}`, { method: "DELETE" })
-};
-
 export const filesApi = {
   list: () => request<GeneratedFile[]>("/api/files")
 };
@@ -133,4 +133,17 @@ export const filesApi = {
 export const runsApi = {
   list: () => request<RunHistorySummary[]>("/api/runs"),
   get: (runId: string) => request<AgentResult & { input: string; createdAt: string }>(`/api/runs/${runId}`)
+};
+
+export const calendarApi = {
+  list: () => request<StoredCalendarEvent[]>("/api/calendar"),
+  create: (data: Omit<CalendarEvent, "id" | "taskId"> & { taskId?: string }) => request<StoredCalendarEvent>("/api/calendar", {
+    method: "POST",
+    body: JSON.stringify(data)
+  }),
+  update: (id: string, data: Partial<CalendarEvent>) => request<StoredCalendarEvent>(`/api/calendar/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data)
+  }),
+  delete: (id: string) => request<void>(`/api/calendar/${id}`, { method: "DELETE" })
 };

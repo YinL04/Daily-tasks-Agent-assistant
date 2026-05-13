@@ -4,6 +4,7 @@ import { buildContext } from "./context.js";
 import { createPlan } from "./planner.js";
 import { MemoryManager } from "../memory/memoryManager.js";
 import { RunHistoryStore } from "../storage/runHistoryStore.js";
+import { CalendarStore } from "../storage/calendarStore.js";
 import { requireNonEmptyInput } from "../utils/validation.js";
 import { createLLMProvider, testLLMConnection } from "../llm/index.js";
 import {
@@ -18,7 +19,8 @@ import {
 export class AgentExecutor {
   constructor(
     private memoryManager = new MemoryManager(),
-    private historyStore = new RunHistoryStore()
+    private historyStore = new RunHistoryStore(),
+    private calendarStore = new CalendarStore()
   ) {}
 
   async run(input: string, options: AgentOptions = {}): Promise<HarnessRunResult> {
@@ -49,7 +51,7 @@ export class AgentExecutor {
     const urls = await harness.runStep("网址整理", urlCollectorSkill, context, urlCollectorSkill.definition.input, llmAvailable);
 
     // Step 5: Recommendations (LLM-dependent)
-    const recommendations = await harness.runStep("建议生成", recommendationSkill, { tasks, events: calendarEvents }, recommendationSkill.definition.input, llmAvailable);
+    const recommendations = await harness.runStep("建议生成", recommendationSkill, { goal: input, tasks, events: calendarEvents }, recommendationSkill.definition.input, llmAvailable);
 
     // Generate finalAnswer via LLM instead of hardcoded
     const finalAnswer = await this.generateFinalAnswer(input, tasks, calendarEvents, recommendations, llmAvailable);
@@ -67,6 +69,7 @@ export class AgentExecutor {
       }, fileWriterSkill.definition.input, false);
 
     await this.memoryManager.maybeInferMemories(input);
+    await this.calendarStore.addMany(calendarEvents, context.runId);
 
     const result: HarnessRunResult = {
       runId: context.runId,

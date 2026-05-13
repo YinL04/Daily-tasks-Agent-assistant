@@ -7,6 +7,7 @@ import memoryRoutes from "./routes/memory.routes.js";
 import filesRoutes from "./routes/files.routes.js";
 import skillsRoutes from "./routes/skills.routes.js";
 import historyRoutes from "./routes/history.routes.js";
+import calendarRoutes from "./routes/calendar.routes.js";
 import { ensureStorage } from "./storage/db.js";
 
 dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
@@ -33,6 +34,7 @@ app.use("/api/memories", memoryRoutes);
 app.use("/api/files", filesRoutes);
 app.use("/api/skills", skillsRoutes);
 app.use("/api/runs", historyRoutes);
+app.use("/api/calendar", calendarRoutes);
 
 app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   const message = error instanceof Error ? error.message : "Unknown error";
