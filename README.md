@@ -2,8 +2,6 @@
 
 一个本地可运行的个人事务规划 Agent 项目。用户输入自然语言目标、待办、链接或文件需求后，后端会构建运行上下文，检索长期记忆，按 Markdown Skill 定义编排任务拆解、优先级排序、日历规划、网址整理、建议生成和文件导出，前端展示一次完整 Agent Run 的结果与执行日志。
 
-这个项目的重点不是做一个简单 To-do List，而是展示一个小型但完整的上下文工程实践：如何把用户输入、时间、记忆、Skill 说明、LLM 能力、本地 fallback、运行日志和生成文件组织成可观测、可降级、可迭代的 Agent 系统。
-
 ## 项目亮点
 
 - 上下文工程：`Context Builder` 将用户输入、当前时间、相关记忆组合成统一 `AgentContext`，供后续 Skill 共享。
@@ -147,8 +145,6 @@ output: PlannedTask[]
 - `buildContext()` 把相关记忆放入 `AgentContext.memories`。
 - `taskDecomposerSkill` 在 prompt 中读取这些上下文，辅助任务拆解。
 - `maybeInferMemories(input)` 只保存稳定、重复、对未来规划有帮助的信息，并使用较低置信度标记 Agent 推断记忆。
-
-这让项目在面试讲解时可以清楚说明：前端关注任务规划体验，后端保留上下文工程能力，记忆层不会变成用户必须管理的复杂 UI。
 
 ## 环境变量
 
