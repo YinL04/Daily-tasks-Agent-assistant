@@ -130,19 +130,21 @@ export default function Dashboard() {
             <section className="panel">
               <h2>执行日志</h2>
               <details open>
-                <summary>Agent steps</summary>
+                <summary>ReAct steps</summary>
                 <div className="step-list">
                   {result.steps.map((step) => (
                     <div className={`step-row ${step.usedLLM ? "step-llm" : "step-local"}`} key={step.id}>
                       <div className="step-info">
                         <strong>{step.name}</strong>
                         <span>{step.skillName}</span>
+                        {step.thought && <small><b>Thought</b>：{step.thought}</small>}
+                        {step.action && <small><b>Action</b>：{step.action}</small>}
                       </div>
                       <div className="step-meta">
                         <span className={`step-badge ${step.usedLLM ? "badge-ai" : "badge-local"}`}>
                           {step.usedLLM ? "AI" : "本地"}
                         </span>
-                        <small>{step.outputSummary}</small>
+                        <small><b>Observation</b>：{step.observation || step.outputSummary}</small>
                       </div>
                     </div>
                   ))}

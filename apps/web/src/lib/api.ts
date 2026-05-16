@@ -58,6 +58,9 @@ export interface AgentStepLog {
   name: string;
   skillName?: string;
   status: "pending" | "running" | "success" | "error";
+  thought?: string;
+  action?: string;
+  observation?: string;
   inputSummary: string;
   outputSummary?: string;
   usedLLM?: boolean;
@@ -81,6 +84,7 @@ export interface LLMConnectionTest {
 
 export interface AgentResult {
   runId: string;
+  agentPattern: "react";
   finalAnswer: string;
   tasks: PlannedTask[];
   calendarEvents: CalendarEvent[];

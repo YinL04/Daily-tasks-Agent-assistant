@@ -52,6 +52,9 @@ export interface AgentStepLog {
   name: string;
   skillName?: string;
   status: "pending" | "running" | "success" | "error";
+  thought?: string;
+  action?: string;
+  observation?: string;
   inputSummary: string;
   outputSummary?: string;
   error?: string;
@@ -70,6 +73,7 @@ export interface LLMStatus {
 
 export interface HarnessRunResult {
   runId: string;
+  agentPattern: "react";
   steps: AgentStepLog[];
   finalAnswer: string;
   tasks: PlannedTask[];

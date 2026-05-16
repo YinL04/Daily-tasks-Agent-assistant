@@ -6,7 +6,7 @@
 apps/server/src/skills/definitions/*.skill.md
 ```
 
-TypeScript 文件负责运行时执行，Markdown 文件负责描述 skill 的身份、输入输出契约和行为规则。任务拆解和执行建议会优先使用 `.env` 中配置的 OpenAI 兼容 API；如果调用失败，则使用本地 fallback。
+TypeScript 文件负责运行时执行，Markdown 文件负责描述 skill 的身份、输入输出契约和行为规则。经典 ReAct 循环会把当前可用 skill 作为工具列表交给 LLM，由模型每轮选择下一步 Action；后端会校验 action 是否在 `allowedActions` 中。任务拆解、工具选择、网址建议、执行建议和最终总结会优先使用 `.env` 中配置的 OpenAI 兼容 API；如果没有可用模型，后端可以启动并展示连接状态，但一次有效的自主 Agent Run 需要可用 LLM。
 
 ## 文件格式
 
@@ -28,15 +28,15 @@ output: PlannedTask[]
 ## 规则
 
 - 优先输出 3-7 个任务。
-- 每个任务包含优先级、预计耗时、截止日期、依赖关系和标签。
+- 每个任务包含优先级、预计耗时、依赖关系和标签；如果用户给出明确日期，再补充截止日期。
 - 如果输入比较模糊，先创建澄清目标和成功标准的任务。
 ```
 
 字段说明：
 
-- `name`：运行时 skill 名称，Harness 日志和 Planner 使用它。
+- `name`：运行时 skill 名称，ReAct 决策 prompt、`AgentExecutor` 工具路由和 Harness step log 会使用它。
 - `title`：面向人类阅读的标题。
-- `description`：skill 的短描述，会被 Planner 作为 step reason 使用。
+- `description`：skill 的短描述，会被 Markdown 绑定后的运行时 skill 暴露出来；当前 Planner 元数据和 ReAct 工具说明都会使用它。
 - `input`：输入契约，例如 `AgentContext`、`PlannedTask[]`。
 - `output`：输出契约，例如 `PlannedTask[]`、`CalendarEvent[]`。
 - 正文：给 handler 或未来 LLM 执行器使用的规则、约束和输出要求。
@@ -73,13 +73,14 @@ apps/server/src/skills/index.ts
 1. 在 `apps/server/src/skills/definitions/` 新增 `your-skill.skill.md`。
 2. 在 `apps/server/src/skills/` 新增 `yourSkill.skill.ts`，实现 `Skill<I, O>`。
 3. 在 `apps/server/src/skills/index.ts` 中使用 `withMarkdownDefinition` 绑定它。
-4. 在 `apps/server/src/agent/planner.ts` 中决定什么时候调用它。
-5. 在 `apps/server/src/agent/executor.ts` 中接入执行顺序和输入输出。
-6. 运行 `npm.cmd run typecheck` 和 `npm.cmd run build`。
+4. 如果需要让计划元数据包含这个 skill，在 `apps/server/src/agent/planner.ts` 中加入对应 step。
+5. 在 `apps/server/src/agent/executor.ts` 的工具 runtime 列表中接入这个 skill，定义它的输入、输出写回逻辑、可用条件和是否使用 LLM。
+6. 确认 `decideNextAction()` 的工具说明能让模型理解何时选择它。
+7. 运行 `npm.cmd run typecheck` 和 `npm.cmd run build`。
 
-## 切换到 LLM 执行
+## 使用 LLM 执行
 
-当前任务拆解和执行建议已经会读取 Markdown prompt，并把 prompt 和结构化输入交给 `LLMProvider.generateJSON`：
+当前任务拆解和执行建议会读取 Markdown prompt，并把 prompt 和结构化输入交给 `LLMProvider.generateJSON`；网址整理也会调用 `generateJSON` 生成推荐链接。示例：
 
 ```ts
 const result = await provider.generateJSON<PlannedTask[]>(
@@ -88,7 +89,7 @@ const result = await provider.generateJSON<PlannedTask[]>(
 );
 ```
 
-必须始终保留 fallback：当 LLM 没有返回合法 JSON、网络失败或没有配置 API Key 时，使用本地规则结果。
+工程上建议为高风险 LLM skill 保留 fallback：当 LLM 没有返回合法 JSON、网络失败或没有配置 API Key 时，应该能退回本地规则或给出清晰错误。当前 ReAct 决策层已经有保守的确定性 fallback，部分工具也是本地确定性 skill；但不是每个 LLM skill 都已经实现完整业务级 fallback，新增 skill 时应显式说明其失败行为。
 
 ## 设计原则
 

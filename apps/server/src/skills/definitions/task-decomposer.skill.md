@@ -12,7 +12,7 @@ output: PlannedTask[]
 
 ## 规则
 
-- 每个任务必须包含 `title`、`description`、`priority`、`estimatedMinutes`、`dueDate`、`dependencies` 和 `tags`。
+- 每个任务必须包含 `title`、`description`、`priority`、`estimatedMinutes`、`dependencies` 和 `tags`；如果有明确截止日期，再补充 `dueDate`。
 - 任务必须完全贴合用户输入的具体内容，禁止输出与用户场景无关的通用任务。
 - title 和 description 要包含用户提到的具体细节（人名、地点、时间、数量、工具等）。
 - `estimatedMinutes` 根据任务实际复杂度估算，不要所有任务都写同一个值。
@@ -22,4 +22,4 @@ output: PlannedTask[]
 
 ## 输出要求
 
-只返回结构化任务数组，每条任务必须针对用户输入的具体场景。
+只返回结构化任务数组，每条任务必须针对用户输入的具体场景。`dueDate` 如存在，应使用 `YYYY-MM-DD`。

@@ -8,9 +8,9 @@ output: GeneratedFile[]
 
 ## 目标
 
-把 Agent 的聚合结果写成用户可下载和复用的计划文件。
+当 ReAct 循环选择 `file_writer` 且文件生成未关闭时，把 Agent 的聚合结果写成用户可下载和复用的计划文件。
 
-## 必须生成的文件
+## 当前 runtime 生成的文件
 
 - Markdown 计划文档
 - JSON 结构化结果
