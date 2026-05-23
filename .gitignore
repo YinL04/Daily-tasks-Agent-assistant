@@ -19,6 +19,7 @@ generated/exports/*
 !generated/exports/.gitkeep
 
 # Benchmark run outputs
+personal_planning_agent_benchmark_10cases.md
 benchmark/results/*
 !benchmark/results/.gitkeep
 
