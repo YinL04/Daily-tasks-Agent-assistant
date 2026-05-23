@@ -1,20 +1,36 @@
+# Dependencies
 node_modules/
+
+# Build outputs
 dist/
 apps/*/dist/
 **/*.tsbuildinfo
 
+# Environment files
 .env
 .env.*
 !.env.example
 
+# Local app state and generated artifacts
 data/*.json
 generated/plans/*
 generated/exports/*
 !generated/plans/.gitkeep
 !generated/exports/.gitkeep
 
+# Benchmark run outputs
+benchmark/results/*
+!benchmark/results/.gitkeep
+
+# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# OS and editor files
 .DS_Store
 Thumbs.db
+.idea/
+.vscode/

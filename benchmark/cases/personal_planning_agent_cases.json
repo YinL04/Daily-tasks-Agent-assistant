@@ -1,0 +1,408 @@
+[
+  {
+    "id": "study_001",
+    "category": "学习规划",
+    "user_input": "我想在 2 周内入门 AI 产品经理，平时每天晚上有 2 小时，周末每天有 5 小时，帮我做一个学习计划。",
+    "time_constraint": "2 周",
+    "expected_elements": [
+      "goal_understanding",
+      "task_breakdown",
+      "priority",
+      "schedule",
+      "deliverables",
+      "resources",
+      "risks"
+    ],
+    "must_cover_keywords": [
+      "AI 产品经理",
+      "2 周",
+      "每天",
+      "周末",
+      "竞品分析",
+      "PRD",
+      "原型"
+    ],
+    "notes": "应包含基础认知、竞品分析、PRD/原型练习、项目包装等。",
+    "title": "学习规划",
+    "input": "我想在 2 周内入门 AI 产品经理，平时每天晚上有 2 小时，周末每天有 5 小时，帮我做一个学习计划。",
+    "expectedKeywords": [
+      "AI 产品经理",
+      "2 周",
+      "每天",
+      "周末",
+      "竞品分析",
+      "PRD",
+      "原型"
+    ],
+    "options": {
+      "generateFiles": false,
+      "generateCalendar": true,
+      "useMemory": true
+    }
+  },
+  {
+    "id": "study_002",
+    "category": "学习规划",
+    "user_input": "我还有 10 天数据库考试，基础一般，白天有课，只能晚上复习。请帮我安排复习计划。",
+    "time_constraint": "10 天",
+    "expected_elements": [
+      "goal_understanding",
+      "task_breakdown",
+      "priority",
+      "schedule",
+      "deliverables",
+      "resources",
+      "risks"
+    ],
+    "must_cover_keywords": [
+      "数据库",
+      "10 天",
+      "晚上",
+      "SQL",
+      "事务",
+      "索引",
+      "复习"
+    ],
+    "notes": "应体现考试复习优先级，不应安排过量任务。",
+    "title": "学习规划",
+    "input": "我还有 10 天数据库考试，基础一般，白天有课，只能晚上复习。请帮我安排复习计划。",
+    "expectedKeywords": [
+      "数据库",
+      "10 天",
+      "晚上",
+      "SQL",
+      "事务",
+      "索引",
+      "复习"
+    ],
+    "options": {
+      "generateFiles": false,
+      "generateCalendar": true,
+      "useMemory": true
+    }
+  },
+  {
+    "id": "career_001",
+    "category": "求职规划",
+    "user_input": "我想 6 周内准备好 AI 产品经理实习投递，包括简历、项目包装、面试准备和投递节奏，请帮我规划。",
+    "time_constraint": "6 周",
+    "expected_elements": [
+      "goal_understanding",
+      "task_breakdown",
+      "priority",
+      "schedule",
+      "deliverables",
+      "resources",
+      "risks"
+    ],
+    "must_cover_keywords": [
+      "AI 产品经理",
+      "实习",
+      "6 周",
+      "简历",
+      "项目包装",
+      "面试",
+      "投递"
+    ],
+    "notes": "应包含简历优化、项目 STAR、岗位分析、模拟面试和投递节奏。",
+    "title": "求职规划",
+    "input": "我想 6 周内准备好 AI 产品经理实习投递，包括简历、项目包装、面试准备和投递节奏，请帮我规划。",
+    "expectedKeywords": [
+      "AI 产品经理",
+      "实习",
+      "6 周",
+      "简历",
+      "项目包装",
+      "面试",
+      "投递"
+    ],
+    "options": {
+      "generateFiles": false,
+      "generateCalendar": true,
+      "useMemory": true
+    }
+  },
+  {
+    "id": "career_002",
+    "category": "求职规划",
+    "user_input": "我现在有几个 AI 项目，但没有实习结果指标。请帮我规划 2 周内如何补 Benchmark 和简历数据。",
+    "time_constraint": "2 周",
+    "expected_elements": [
+      "goal_understanding",
+      "task_breakdown",
+      "priority",
+      "schedule",
+      "deliverables",
+      "resources",
+      "risks"
+    ],
+    "must_cover_keywords": [
+      "AI 项目",
+      "Benchmark",
+      "简历",
+      "2 周",
+      "指标",
+      "测试集",
+      "评估"
+    ],
+    "notes": "应包含测试集构建、评分规则、数据统计和简历表达。",
+    "title": "求职规划",
+    "input": "我现在有几个 AI 项目，但没有实习结果指标。请帮我规划 2 周内如何补 Benchmark 和简历数据。",
+    "expectedKeywords": [
+      "AI 项目",
+      "Benchmark",
+      "简历",
+      "2 周",
+      "指标",
+      "测试集",
+      "评估"
+    ],
+    "options": {
+      "generateFiles": false,
+      "generateCalendar": true,
+      "useMemory": true
+    }
+  },
+  {
+    "id": "project_001",
+    "category": "项目规划",
+    "user_input": "我想 4 周内做一个基于 RAG 的足球问答助手，用来展示我的 AI 产品和技术能力，请帮我拆解任务。",
+    "time_constraint": "4 周",
+    "expected_elements": [
+      "goal_understanding",
+      "task_breakdown",
+      "priority",
+      "schedule",
+      "deliverables",
+      "resources",
+      "risks"
+    ],
+    "must_cover_keywords": [
+      "RAG",
+      "足球问答",
+      "4 周",
+      "AI 产品",
+      "技术能力",
+      "检索",
+      "评估"
+    ],
+    "notes": "应包含需求定义、技术链路、数据源、评估、Demo 和简历包装。",
+    "title": "项目规划",
+    "input": "我想 4 周内做一个基于 RAG 的足球问答助手，用来展示我的 AI 产品和技术能力，请帮我拆解任务。",
+    "expectedKeywords": [
+      "RAG",
+      "足球问答",
+      "4 周",
+      "AI 产品",
+      "技术能力",
+      "检索",
+      "评估"
+    ],
+    "options": {
+      "generateFiles": false,
+      "generateCalendar": true,
+      "useMemory": true
+    }
+  },
+  {
+    "id": "project_002",
+    "category": "项目规划",
+    "user_input": "我想在 10 天内把一个已有 GitHub Demo 改造成更像产品的项目，包括 README、Demo 视频、指标和面试讲法。",
+    "time_constraint": "10 天",
+    "expected_elements": [
+      "goal_understanding",
+      "task_breakdown",
+      "priority",
+      "schedule",
+      "deliverables",
+      "resources",
+      "risks"
+    ],
+    "must_cover_keywords": [
+      "GitHub Demo",
+      "产品",
+      "README",
+      "Demo 视频",
+      "指标",
+      "面试",
+      "10 天"
+    ],
+    "notes": "应包含产品包装、文档、评估指标和展示材料。",
+    "title": "项目规划",
+    "input": "我想在 10 天内把一个已有 GitHub Demo 改造成更像产品的项目，包括 README、Demo 视频、指标和面试讲法。",
+    "expectedKeywords": [
+      "GitHub Demo",
+      "产品",
+      "README",
+      "Demo 视频",
+      "指标",
+      "面试",
+      "10 天"
+    ],
+    "options": {
+      "generateFiles": false,
+      "generateCalendar": true,
+      "useMemory": true
+    }
+  },
+  {
+    "id": "travel_001",
+    "category": "旅行规划",
+    "user_input": "我想做一个 3 天东京旅行计划，预算中等，喜欢动漫、咖啡店和城市散步，不想行程太赶。",
+    "time_constraint": "3 天",
+    "expected_elements": [
+      "goal_understanding",
+      "task_breakdown",
+      "priority",
+      "schedule",
+      "deliverables",
+      "resources",
+      "risks"
+    ],
+    "must_cover_keywords": [
+      "东京",
+      "3 天",
+      "预算中等",
+      "动漫",
+      "咖啡店",
+      "城市散步",
+      "不赶"
+    ],
+    "notes": "应包含每天行程、区域安排、节奏控制和备选方案。",
+    "title": "旅行规划",
+    "input": "我想做一个 3 天东京旅行计划，预算中等，喜欢动漫、咖啡店和城市散步，不想行程太赶。",
+    "expectedKeywords": [
+      "东京",
+      "3 天",
+      "预算中等",
+      "动漫",
+      "咖啡店",
+      "城市散步",
+      "不赶"
+    ],
+    "options": {
+      "generateFiles": false,
+      "generateCalendar": true,
+      "useMemory": true
+    }
+  },
+  {
+    "id": "travel_002",
+    "category": "旅行规划",
+    "user_input": "我计划 5 天去关西旅行，想去大阪、京都和奈良，第一次去日本，帮我安排路线和准备事项。",
+    "time_constraint": "5 天",
+    "expected_elements": [
+      "goal_understanding",
+      "task_breakdown",
+      "priority",
+      "schedule",
+      "deliverables",
+      "resources",
+      "risks"
+    ],
+    "must_cover_keywords": [
+      "关西",
+      "大阪",
+      "京都",
+      "奈良",
+      "5 天",
+      "第一次",
+      "路线"
+    ],
+    "notes": "应包含城市顺序、每日路线、交通准备、风险提醒。",
+    "title": "旅行规划",
+    "input": "我计划 5 天去关西旅行，想去大阪、京都和奈良，第一次去日本，帮我安排路线和准备事项。",
+    "expectedKeywords": [
+      "关西",
+      "大阪",
+      "京都",
+      "奈良",
+      "5 天",
+      "第一次",
+      "路线"
+    ],
+    "options": {
+      "generateFiles": false,
+      "generateCalendar": true,
+      "useMemory": true
+    }
+  },
+  {
+    "id": "constraint_001",
+    "category": "复杂约束",
+    "user_input": "我想 4 周内准备一个 AI 产品作品集，但我每周只有 8 小时，而且中间有一周要考试，请帮我安排一个现实一点的计划。",
+    "time_constraint": "4 周",
+    "expected_elements": [
+      "goal_understanding",
+      "task_breakdown",
+      "priority",
+      "schedule",
+      "deliverables",
+      "resources",
+      "risks"
+    ],
+    "must_cover_keywords": [
+      "4 周",
+      "AI 产品作品集",
+      "每周 8 小时",
+      "考试",
+      "现实",
+      "取舍"
+    ],
+    "notes": "应体现时间限制和取舍，不能安排过重任务。",
+    "title": "复杂约束",
+    "input": "我想 4 周内准备一个 AI 产品作品集，但我每周只有 8 小时，而且中间有一周要考试，请帮我安排一个现实一点的计划。",
+    "expectedKeywords": [
+      "4 周",
+      "AI 产品作品集",
+      "每周 8 小时",
+      "考试",
+      "现实",
+      "取舍"
+    ],
+    "options": {
+      "generateFiles": false,
+      "generateCalendar": true,
+      "useMemory": true
+    }
+  },
+  {
+    "id": "ambiguous_001",
+    "category": "模糊输入",
+    "user_input": "我想提升自己，帮我规划一下。",
+    "time_constraint": "不明确",
+    "expected_elements": [
+      "goal_understanding",
+      "task_breakdown",
+      "priority",
+      "schedule",
+      "deliverables",
+      "resources",
+      "risks"
+    ],
+    "must_cover_keywords": [
+      "澄清",
+      "目标",
+      "学习",
+      "健康",
+      "职业",
+      "计划"
+    ],
+    "notes": "应主动说明假设，给出通用初版计划，并提示用户补充信息。",
+    "title": "模糊输入",
+    "input": "我想提升自己，帮我规划一下。",
+    "expectedKeywords": [
+      "澄清",
+      "目标",
+      "学习",
+      "健康",
+      "职业",
+      "计划"
+    ],
+    "options": {
+      "generateFiles": false,
+      "generateCalendar": true,
+      "useMemory": true
+    }
+  }
+]
