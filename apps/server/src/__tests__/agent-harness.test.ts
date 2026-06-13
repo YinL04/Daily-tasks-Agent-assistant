@@ -94,3 +94,45 @@ test("AgentHarness stops execution after the max ReAct step count", async () => 
 
   assert.equal(harness.logs.length, 1);
 });
+
+test("AgentHarness emits step and observation events", async () => {
+  const events: string[] = [];
+  const harness = new AgentHarness(2, {
+    onEvent(event) {
+      events.push(event.type);
+    }
+  });
+  const skill: Skill<string, string> = {
+    name: "echo",
+    description: "echo skill",
+    async execute(input) {
+      return input;
+    }
+  };
+
+  await harness.runStep("ReAct: echo", skill, "ok", "input", false, {
+    thought: "echo",
+    action: "echo"
+  });
+
+  assert.deepEqual(events, ["step", "observation"]);
+});
+
+test("AgentHarness respects abort signals", async () => {
+  const controller = new AbortController();
+  controller.abort();
+  const harness = new AgentHarness(2, { signal: controller.signal });
+  const skill: Skill<string, string> = {
+    name: "echo",
+    description: "echo skill",
+    async execute(input) {
+      return input;
+    }
+  };
+
+  await assert.rejects(
+    () => harness.runStep("ReAct: echo", skill, "ok", "input", false),
+    /用户中断了 Agent 运行/
+  );
+  assert.equal(harness.logs.length, 0);
+});

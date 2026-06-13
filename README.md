@@ -1,54 +1,85 @@
 # Personal Agent Planner
 
-一个本地可运行的个人事务规划 Agent 项目。用户输入自然语言目标、待办、链接或文件需求后，后端会构建运行上下文，检索长期记忆，并通过经典 ReAct 循环让 LLM 在每一轮从可用工具中选择下一步 Action；工具执行后产生 Observation，再回到模型继续决策。前端展示一次 Agent Run 的结构化结果与执行日志。
+一个本地可运行的个人事务规划 Agent。用户输入自然语言目标、待办、旅行准备、学习计划、链接或文件需求后，系统会构建上下文，检索长期记忆，并通过经典 ReAct 循环让 LLM 在每一轮从可用工具中选择下一步 Action；工具执行后产生 Observation，再回到模型继续决策。
+
+v2.0 已经从“一次性规划工作台”升级为“会话式个人事务 Agent”：支持多轮对话、流式执行反馈、会话历史注入、可中断运行和更紧凑的前端布局。
+
+## 本次 v2.0 更新
+
+- 新增会话系统：支持创建会话、会话列表、消息持久化、assistant 结果写回同一会话。
+- 支持多轮上下文：`AgentContext` 会注入最近会话历史，用户可以在后续消息里说“预算改一下”“换成下周”。
+- 支持流式运行：`POST /api/agent/run` 可返回 `text/event-stream`，前端实时展示 `step`、`observation`、`partial`、`done`、`error`。
+- 支持中断运行：前端使用 `AbortController`，后端 Harness 会在步骤边界检查 abort signal。
+- 修复自动中断问题：流式路由不再把正常 POST 请求关闭误判为用户取消。
+- 前端改成聊天式界面：左侧会话列表，中间消息流，底部输入框。
+- LLM 状态收纳到左侧小框：主内容区不再被大状态面板占用。
+- 日历收进二级菜单：左侧 `工作台 -> 日历` 单独打开，不再占据对话首屏。
+- 安全加固：输入长度限制、文件下载白名单、健康端点脱敏、可选 `AUTH_TOKEN`、Agent Run 基础 rate limit。
+- 测试补强：新增 `ConversationStore` 测试和 Harness 事件/中断测试。
 
 ## 项目亮点
 
-- 上下文工程：`Context Builder` 将用户输入、当前时间、相关记忆组合成统一 `AgentContext`，供后续 Skill 共享。
-- 经典 ReAct 自主循环：`AgentExecutor` 每轮把当前状态、上一轮 Observation 和可用工具交给 LLM，由模型返回 Thought / Action；代码只接受当前 `allowedActions` 中的 Action，`AgentHarness` 负责限制、包裹 Skill 调用，并产出 Observation、状态和错误信息。
+- 上下文工程：`Context Builder` 将用户输入、当前时间、相关记忆和最近会话历史组合成统一 `AgentContext`。
+- 经典 ReAct 自主循环：`AgentExecutor` 每轮把当前状态、上一轮 Observation、可用工具和 `allowedActions` 交给 LLM，由模型返回 Thought / Action。
+- 执行可观测：`AgentHarness` 包裹每个 Skill 调用，限制步数、检查中断、记录状态，并向前端推送步骤事件。
 - Markdown Skills：Skill 的职责、输入输出和执行规则写在 `*.skill.md` 中，代码 handler 负责执行，做到“规则可读、执行可控”。
-- LLM 驱动：工具选择、任务拆解、网址整理、建议和总结优先使用 OpenAI 兼容接口；服务在没有 API Key 时仍可启动并显示连接状态，但一次有效的自主 ReAct Run 需要可用 LLM。
-- 长期记忆：后端保留记忆检索和低置信度推断能力，用于增强后续上下文；前端默认不展示记忆管理，避免把内部上下文状态暴露成主要产品界面。
-- 可编辑日历：Agent 生成的日历事件会保存到本地日历，用户可以在前端新增、修改和删除安排。
-- 可交付输出：当 ReAct 循环调用 `file_writer` 且 `generateFiles` 未关闭时，可生成 Markdown 计划、JSON 结果、CSV 任务和 ICS 日历文件；运行结果会写入历史记录。
-- 工程边界清晰：前后端 workspace、类型定义、路由、存储、LLM Provider、Skills、生成目录和文档分层明确。
+- LLM 驱动：工具选择、任务拆解、网址整理、建议和总结优先使用 OpenAI 兼容接口。
+- 本地持久化：会话、运行历史、日历、记忆和生成文件都保存在本地。
+- 可编辑日历：Agent 生成的日历事件会保存到本地日历，用户可以在 `工作台 -> 日历` 中新增、修改和删除安排。
+- 可交付输出：当 ReAct 循环调用 `file_writer` 且 `generateFiles` 未关闭时，可生成 Markdown、JSON、CSV 和 ICS 文件。
 
 ## 当前完成度
 
 已完成：
 
-- 自然语言输入到结构化任务、可编辑日历事件、网址建议和执行建议的 Agent Run 链路；完整效果依赖可用 LLM 和模型选择的工具路径。
-- Agent 执行日志、LLM 连接状态、运行历史和生成文件下载。
-- OpenAI 兼容 Provider 抽象，可通过环境变量替换模型和 base URL。
+- 会话式前端工作台、会话列表和消息流。
+- Agent Run 流式输出与实时步骤渲染。
+- 多轮对话上下文注入。
+- Agent Run 中断支持。
+- LLM 连接状态小型侧边栏展示。
+- 独立日历二级页面。
+- OpenAI 兼容 Provider，可通过环境变量替换模型和 base URL。
 - 长期记忆的后端 CRUD、相关记忆检索和自动推断入口。
-- Markdown Skill 定义加载与 TypeScript runtime handler。部分 handler 是本地确定性逻辑，部分 handler 会调用 LLM。
-- 旅行建议支持候选城市和景点方向推荐，并在 prompt 中约束不要编造价格、营业时间、交通班次等不稳定信息。
+- Markdown Skill 定义加载与 TypeScript runtime handler。
+- 运行历史、生成文件下载、日历 CRUD。
+- 基础安全加固和自动化测试。
+
+仍待加强：
+
+- 记忆管理前端页和 pending 确认机制。
+- 更完整的 API 集成测试和前端组件测试。
+- Docker/CI/SQLite 迁移。
 
 ## 技术栈
 
 - 前端：React、TypeScript、Vite、lucide-react
 - 后端：Node.js、Express、TypeScript、Zod
 - 存储：本地 JSON 文件
-- Agent：Classic ReAct Loop、Context Builder、Planner Metadata、Harness、Markdown Skills、LLM Provider
+- Agent：Classic ReAct Loop、Context Builder、Conversation Context、Harness、Markdown Skills、LLM Provider
 - LLM：OpenAI Compatible Chat Completions API
 
 ## 架构流程
 
 ```text
-User Input
+User Message
+  -> ConversationStore
+     - create/list/get conversations
+     - append user / assistant messages
   -> Context Builder
      - runId
      - input
      - current time
      - relevant memories
+     - recent conversation history
   -> ReAct Loop
      -> AgentExecutor
         - ask LLM to choose next Thought / Action
         - validate Action against allowedActions
-     -> Agent Harness
+     -> AgentHarness
         - max step guard
+        - abort guard
         - Thought / Action / Observation logs
-        - error boundary
+        - stream events
      -> Skill Execution
         - task decomposition
         - priority sorting
@@ -61,6 +92,7 @@ User Input
         - feed back into next ReAct turn
   -> Result Aggregation
   -> Run History
+  -> Conversation Message
   -> Web UI
 ```
 
@@ -82,6 +114,17 @@ interface HarnessRunResult {
 }
 ```
 
+流式事件：
+
+```ts
+type AgentRunEvent =
+  | { type: "step"; step: AgentStepLog }
+  | { type: "observation"; step: AgentStepLog }
+  | { type: "partial"; result: Partial<HarnessRunResult> }
+  | { type: "done"; result: HarnessRunResult; conversationId?: string }
+  | { type: "error"; message: string; partialResult?: Partial<HarnessRunResult> };
+```
+
 ## 目录结构
 
 ```text
@@ -90,6 +133,9 @@ personal-agent-planner/
   .env.example
   package.json
   docs/
+    PRD.md
+    PRD_V2.md
+    PRD_V2_OPTIMIZATION_PLAN.md
     SKILLS.md
     AGENT_ENGINEERING.md
     QUALITY_EVALUATION.md
@@ -104,12 +150,20 @@ personal-agent-planner/
       src/
         index.ts
         routes/
+          agent.routes.ts
+          conversation.routes.ts
+          files.routes.ts
+          memory.routes.ts
         agent/
           context.ts
           planner.ts
           harness.ts
           executor.ts
           types.ts
+        storage/
+          conversationStore.ts
+          calendarStore.ts
+          runHistoryStore.ts
         skills/
           definitions/
             *.skill.md
@@ -117,14 +171,27 @@ personal-agent-planner/
           markdownSkill.ts
         __tests__/
         memory/
-        storage/
         llm/
+        middleware/
         utils/
   data/
   generated/
     plans/
     exports/
 ```
+
+## 前端界面
+
+- 左侧：
+  - LLM 连接状态小框。
+  - 新对话按钮。
+  - 会话列表。
+  - 工作台一级入口。
+  - 工作台二级入口：`对话`、`日历`。
+  - 历史记录。
+- 主区域：
+  - 对话页只展示消息流、结构化结果、执行日志和输入框。
+  - 日历页单独展示周视图和手动新增/编辑入口。
 
 ## Markdown Skills
 
@@ -147,13 +214,15 @@ output: PlannedTask[]
 
 运行时由 `apps/server/src/skills/markdownSkill.ts` 加载 Markdown 定义，`apps/server/src/skills/*.skill.ts` 提供执行 handler。完整写法见 [docs/SKILLS.md](docs/SKILLS.md)。
 
-## 上下文与记忆设计
+## 上下文、会话与记忆
 
-记忆不是产品主界面的一部分，而是 Agent 的上下文增强层：
+会话用于承载多轮对话，记忆用于跨会话保留偏好：
 
+- `ConversationStore` 管理 `data/conversations.json`。
+- 每次用户消息会写入当前会话。
+- Agent 完成后，assistant 消息和完整 `runResult` 写回会话。
+- `buildContext()` 会把最近消息压缩成 `conversationHistory`。
 - `MemoryManager.retrieveRelevant(input)` 为当前输入检索相关记忆。
-- `buildContext()` 把相关记忆放入 `AgentContext.memories`。
-- `taskDecomposerSkill` 在 prompt 中读取这些上下文，辅助任务拆解。
 - `maybeInferMemories(input)` 只保存稳定、重复、对未来规划有帮助的信息，并使用较低置信度标记 Agent 推断记忆。
 
 ## 环境变量
@@ -165,9 +234,10 @@ LLM_API_KEY=你的密钥
 LLM_MODEL_ID=模型 ID
 LLM_BASE_URL=https://api.openai.com/v1
 PORT=8787
+AUTH_TOKEN=可选，设置后所有 /api 请求需要 Bearer token
 ```
 
-如果没有配置 `LLM_API_KEY`，后端仍会启动，前端也会显示 LLM 未连接状态；但经典 ReAct 的下一步工具选择依赖 LLM，一次有效的 Agent Run 需要配置可用模型。`prioritySorter`、`calendarPlanner`、`fileWriter` 等工具本身是本地确定性逻辑；`taskDecomposer`、`urlCollector`、`recommendation` 和 `finalAnswer` 依赖 LLM 的程度更高。
+如果没有配置 `LLM_API_KEY`，后端仍会启动，前端也会显示 LLM 未连接状态；但经典 ReAct 的下一步工具选择依赖 LLM，一次有效的 Agent Run 需要配置可用模型。
 
 ## 安装与启动
 
@@ -197,15 +267,36 @@ npm.cmd run dev
 
 ## API
 
-- `POST /api/agent/run`：运行一次 Agent。
+- `POST /api/agent/run`：运行一次 Agent。支持普通 JSON 响应和 `stream=true` 的 SSE 格式响应。
+- `GET /api/agent/run`：返回 405，并提示使用 POST。
 - `GET /api/agent/llm-status`：检查 LLM Provider 连通性。
+- `POST /api/conversations`：创建会话。
+- `GET /api/conversations`：获取会话摘要列表。
+- `GET /api/conversations/:id`：获取会话详情。
+- `PATCH /api/conversations/:id`：修改会话标题。
+- `DELETE /api/conversations/:id`：删除会话。
 - `GET /api/files`：列出生成文件。
-- `GET /api/files/:filename`：下载生成文件。
+- `GET /api/files/:filename`：下载生成文件，带路径白名单校验。
 - `GET /api/skills`：查看已加载 Skill 定义。
 - `GET /api/runs`：查看运行历史摘要。
 - `GET /api/runs/:runId`：查看单次运行详情。
 - `GET /api/calendar`、`POST /api/calendar`、`PATCH /api/calendar/:id`、`DELETE /api/calendar/:id`：读取、新增、编辑和删除本地日历事件。
-- `GET /api/memories`、`POST /api/memories`、`PATCH /api/memories/:id`、`DELETE /api/memories/:id`：后端记忆管理接口，默认不在前端展示。
+- `GET /api/memories`、`POST /api/memories`、`PATCH /api/memories/:id`、`DELETE /api/memories/:id`：后端记忆管理接口。
+
+## 测试与构建
+
+```bash
+npm.cmd run test
+npm.cmd run typecheck
+npm.cmd run build
+```
+
+当前测试覆盖：
+
+- Harness 成功、失败、最大步数限制。
+- Harness 事件推送和 abort signal。
+- ReAct trace 字段完整性。
+- ConversationStore 创建、消息写入、摘要列表和删除。
 
 ## 示例输入
 

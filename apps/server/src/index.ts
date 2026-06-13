@@ -8,7 +8,10 @@ import filesRoutes from "./routes/files.routes.js";
 import skillsRoutes from "./routes/skills.routes.js";
 import historyRoutes from "./routes/history.routes.js";
 import calendarRoutes from "./routes/calendar.routes.js";
+import conversationRoutes from "./routes/conversation.routes.js";
 import { ensureStorage } from "./storage/db.js";
+import { authMiddleware } from "./middleware/auth.js";
+import { ZodError } from "zod";
 
 dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
 dotenv.config({ path: path.resolve(process.cwd(), "../../../.env") });
@@ -20,13 +23,13 @@ const port = Number(process.env.PORT || 8787);
 
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
+app.use("/api", authMiddleware);
 
 app.get("/api/health", (_req, res) => {
   res.json({
     ok: true,
     modelConfigured: Boolean(process.env.LLM_API_KEY),
-    model: process.env.LLM_MODEL_ID || "not set",
-    baseUrl: process.env.LLM_BASE_URL || "not set"
+    model: process.env.LLM_MODEL_ID || "not set"
   });
 });
 app.use("/api/agent", agentRoutes);
@@ -35,10 +38,13 @@ app.use("/api/files", filesRoutes);
 app.use("/api/skills", skillsRoutes);
 app.use("/api/runs", historyRoutes);
 app.use("/api/calendar", calendarRoutes);
+app.use("/api/conversations", conversationRoutes);
 
 app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  const message = error instanceof Error ? error.message : "Unknown error";
-  const status = error instanceof Error && error.name === "ValidationError" ? 400 : 500;
+  const message = error instanceof ZodError
+    ? error.issues.map((issue) => issue.message).join("; ")
+    : error instanceof Error ? error.message : "Unknown error";
+  const status = error instanceof ZodError || (error instanceof Error && error.name === "ValidationError") ? 400 : 500;
   res.status(status).json({ error: message });
 });
 

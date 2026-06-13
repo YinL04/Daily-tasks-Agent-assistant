@@ -47,6 +47,12 @@ export interface MemoryItem {
   updatedAt: string;
 }
 
+export interface ConversationTurn {
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+}
+
 export interface AgentStepLog {
   id: string;
   name: string;
@@ -62,6 +68,13 @@ export interface AgentStepLog {
   endedAt?: string;
   usedLLM?: boolean;
 }
+
+export type AgentRunEvent =
+  | { type: "step"; step: AgentStepLog }
+  | { type: "observation"; step: AgentStepLog }
+  | { type: "partial"; result: Partial<HarnessRunResult> }
+  | { type: "done"; result: HarnessRunResult; conversationId?: string }
+  | { type: "error"; message: string; partialResult?: Partial<HarnessRunResult> };
 
 export interface LLMStatus {
   connected: boolean;
@@ -85,6 +98,32 @@ export interface HarnessRunResult {
   llmStatus?: LLMStatus;
 }
 
+export interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  runId?: string;
+  runResult?: HarnessRunResult;
+  createdAt: string;
+}
+
+export interface Conversation {
+  id: string;
+  title: string;
+  messages: Message[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ConversationSummary {
+  id: string;
+  title: string;
+  messageCount: number;
+  lastMessage?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface RunHistoryItem extends HarnessRunResult {
   input: string;
   createdAt: string;
@@ -96,9 +135,16 @@ export interface AgentOptions {
   useMemory?: boolean;
 }
 
+export interface AgentRunCallbacks {
+  onEvent?: (event: AgentRunEvent) => void;
+  signal?: AbortSignal;
+}
+
 export interface AgentRunRequest {
   input: string;
   options?: AgentOptions;
+  conversationId?: string;
+  stream?: boolean;
 }
 
 export interface AgentPlan {
@@ -117,6 +163,8 @@ export interface AgentContext {
   input: string;
   now: string;
   memories: MemoryItem[];
+  conversationHistory?: ConversationTurn[];
+  conversationSummary?: string;
 }
 
 export interface Skill<I, O> {

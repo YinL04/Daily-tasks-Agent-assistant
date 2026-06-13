@@ -63,6 +63,9 @@ export interface AgentStepLog {
   observation?: string;
   inputSummary: string;
   outputSummary?: string;
+  error?: string;
+  startedAt?: string;
+  endedAt?: string;
   usedLLM?: boolean;
 }
 
@@ -106,6 +109,39 @@ export interface RunHistorySummary {
   fileCount: number;
 }
 
+export interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  runId?: string;
+  runResult?: AgentResult;
+  createdAt: string;
+}
+
+export interface Conversation {
+  id: string;
+  title: string;
+  messages: Message[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ConversationSummary {
+  id: string;
+  title: string;
+  messageCount: number;
+  lastMessage?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AgentRunEvent =
+  | { type: "step"; step: AgentStepLog }
+  | { type: "observation"; step: AgentStepLog }
+  | { type: "partial"; result: Partial<AgentResult> }
+  | { type: "done"; result: AgentResult; conversationId?: string }
+  | { type: "error"; message: string; partialResult?: Partial<AgentResult> };
+
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
     ...init,
@@ -124,6 +160,74 @@ export function runAgent(input: string) {
     method: "POST",
     body: JSON.stringify({ input, options: { generateFiles: true, generateCalendar: true, useMemory: true } })
   });
+}
+
+function dispatchStreamEvent(
+  eventType: string,
+  data: string,
+  callbacks: {
+    onEvent?: (event: AgentRunEvent) => void;
+    onDone: (event: Extract<AgentRunEvent, { type: "done" }>) => void;
+    onError: (message: string) => void;
+  }
+) {
+  const parsed = JSON.parse(data) as AgentRunEvent;
+  callbacks.onEvent?.(parsed);
+  if (eventType === "done" && parsed.type === "done") callbacks.onDone(parsed);
+  if (eventType === "error" && parsed.type === "error") callbacks.onError(parsed.message);
+}
+
+export function runAgentStream(
+  input: string,
+  conversationId: string,
+  callbacks: {
+    onEvent?: (event: AgentRunEvent) => void;
+    onDone: (event: Extract<AgentRunEvent, { type: "done" }>) => void;
+    onError: (message: string) => void;
+  }
+) {
+  const controller = new AbortController();
+
+  void fetch("/api/agent/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Accept": "text/event-stream" },
+    body: JSON.stringify({
+      input,
+      conversationId,
+      stream: true,
+      options: { generateFiles: true, generateCalendar: true, useMemory: true }
+    }),
+    signal: controller.signal
+  }).then(async (response) => {
+    if (!response.ok || !response.body) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || response.statusText);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const blocks = buffer.split("\n\n");
+      buffer = blocks.pop() || "";
+      for (const block of blocks) {
+        const lines = block.split("\n");
+        const eventType = lines.find((line) => line.startsWith("event: "))?.slice(7) || "message";
+        const data = lines.find((line) => line.startsWith("data: "))?.slice(6);
+        if (data) dispatchStreamEvent(eventType, data, callbacks);
+      }
+    }
+  }).catch((error) => {
+    if (error instanceof DOMException && error.name === "AbortError") return;
+    callbacks.onError(error instanceof Error ? error.message : "运行失败");
+  });
+
+  return controller;
 }
 
 export function testLLMConnection() {
@@ -150,4 +254,18 @@ export const calendarApi = {
     body: JSON.stringify(data)
   }),
   delete: (id: string) => request<void>(`/api/calendar/${id}`, { method: "DELETE" })
+};
+
+export const conversationsApi = {
+  list: () => request<ConversationSummary[]>("/api/conversations"),
+  create: (title?: string) => request<Conversation>("/api/conversations", {
+    method: "POST",
+    body: JSON.stringify({ title })
+  }),
+  get: (id: string) => request<Conversation>(`/api/conversations/${id}`),
+  updateTitle: (id: string, title: string) => request<Conversation>(`/api/conversations/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ title })
+  }),
+  delete: (id: string) => request<void>(`/api/conversations/${id}`, { method: "DELETE" })
 };

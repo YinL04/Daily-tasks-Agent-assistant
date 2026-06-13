@@ -1,6 +1,7 @@
 import type {
   AgentContext,
   AgentOptions,
+  AgentRunCallbacks,
   CalendarEvent,
   GeneratedFile,
   HarnessRunResult,
@@ -15,6 +16,7 @@ import { createPlan } from "./planner.js";
 import { MemoryManager } from "../memory/memoryManager.js";
 import { RunHistoryStore } from "../storage/runHistoryStore.js";
 import { CalendarStore } from "../storage/calendarStore.js";
+import { ConversationStore } from "../storage/conversationStore.js";
 import { requireNonEmptyInput } from "../utils/validation.js";
 import { createLLMProvider, testLLMConnection } from "../llm/index.js";
 import {
@@ -108,14 +110,32 @@ export class AgentExecutor {
   constructor(
     private memoryManager = new MemoryManager(),
     private historyStore = new RunHistoryStore(),
-    private calendarStore = new CalendarStore()
+    private calendarStore = new CalendarStore(),
+    private conversationStore = new ConversationStore()
   ) {}
 
-  async run(input: string, options: AgentOptions = {}): Promise<HarnessRunResult> {
+  async run(
+    input: string,
+    options: AgentOptions = {},
+    conversationId?: string,
+    callbacks: AgentRunCallbacks = {}
+  ): Promise<HarnessRunResult> {
     requireNonEmptyInput(input);
-    const context = await buildContext(input.trim(), this.memoryManager, options.useMemory !== false);
+    const trimmedInput = input.trim();
+    const conversation = conversationId ? await this.conversationStore.ensure(conversationId) : undefined;
+    if (conversation) {
+      await this.conversationStore.addUserMessage(conversation.id, trimmedInput);
+    }
+
+    const context = await buildContext(
+      trimmedInput,
+      this.memoryManager,
+      options.useMemory !== false,
+      this.conversationStore,
+      conversation?.id
+    );
     const plan = createPlan(context, options);
-    const harness = new AgentHarness(autonomousStepLimit);
+    const harness = new AgentHarness(autonomousStepLimit, callbacks);
 
     const llmConn = await testLLMConnection();
     const llmAvailable = llmConn.ok;
@@ -139,7 +159,7 @@ export class AgentExecutor {
     if (!llmAvailable) {
       state.finalAnswer = `[本地模式] LLM 未连接，无法运行由模型自主选择工具的 ReAct 循环。请配置 LLM_API_KEY、LLM_MODEL_ID 和 LLM_BASE_URL 后重试。`;
     } else {
-      await this.runAutonomousReactLoop(context, plan.goal, options, state, harness);
+      await this.runAutonomousReactLoop(context, plan.goal, options, state, harness, callbacks);
     }
 
     await this.memoryManager.maybeInferMemories(input);
@@ -160,6 +180,10 @@ export class AgentExecutor {
     };
 
     await this.historyStore.add(input, result);
+    if (conversation) {
+      await this.conversationStore.addAssistantMessage(conversation.id, result);
+    }
+    callbacks.onEvent?.({ type: "done", result, conversationId: conversation?.id });
     return result;
   }
 
@@ -168,7 +192,8 @@ export class AgentExecutor {
     goal: string,
     options: AgentOptions,
     state: AgentState,
-    harness: AgentHarness
+    harness: AgentHarness,
+    callbacks: AgentRunCallbacks
   ) {
     const tools = this.createToolRuntimes(context, goal, options);
     const executed = new Set<string>();
@@ -209,6 +234,21 @@ export class AgentExecutor {
       tool.apply(state, output);
       executed.add(tool.action);
       lastObservation = harness.logs[harness.logs.length - 1]?.observation ?? "工具已执行。";
+      callbacks.onEvent?.({
+        type: "partial",
+        result: {
+          runId: context.runId,
+          agentPattern: "react",
+          steps: harness.logs,
+          finalAnswer: state.finalAnswer,
+          tasks: state.tasks,
+          calendarEvents: state.calendarEvents,
+          urls: state.urls,
+          files: state.files,
+          memoriesUsed: context.memories,
+          recommendations: state.recommendations
+        }
+      });
 
       if (state.finalAnswer && (options.generateFiles === false || state.files.length > 0)) break;
     }
@@ -351,6 +391,12 @@ export class AgentExecutor {
 ${context.input}
 
 当前时间：${context.now}
+
+会话摘要：
+${context.conversationSummary || "无"}
+
+最近对话：
+${context.conversationHistory?.length ? JSON.stringify(context.conversationHistory, null, 2) : "无"}
 
 相关记忆：
 ${context.memories.length > 0 ? JSON.stringify(context.memories, null, 2) : "无"}

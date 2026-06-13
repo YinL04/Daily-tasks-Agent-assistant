@@ -25,9 +25,21 @@ router.get("/", async (_req, res) => {
 
 router.get("/:filename", async (req, res) => {
   const filename = safeFilename(req.params.filename);
+  if (!filename || filename !== req.params.filename || !/\.(md|json|csv|ics)$/i.test(filename)) {
+    return res.status(403).json({ error: "Access denied" });
+  }
   const base = filename.endsWith(".md") ? generatedPlansDir : generatedExportsDir;
-  const filePath = path.join(base, filename);
-  res.download(filePath, filename);
+  const resolvedBase = path.resolve(base);
+  const filePath = path.resolve(path.join(resolvedBase, filename));
+  if (!filePath.startsWith(`${resolvedBase}${path.sep}`)) {
+    return res.status(403).json({ error: "Access denied" });
+  }
+  try {
+    await fs.access(filePath);
+    res.download(filePath, filename);
+  } catch {
+    res.status(404).json({ error: "File not found" });
+  }
 });
 
 export default router;
