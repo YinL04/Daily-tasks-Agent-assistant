@@ -15,6 +15,7 @@ import {
 
 interface Props {
   conversationId?: string;
+  initialInput?: string;
   onConversationCreated: (id: string) => void;
   onConversationUpdated: () => void;
 }
@@ -26,18 +27,33 @@ function ExecutionLog({ steps }: { steps: AgentStepLog[] }) {
       <h2>执行日志</h2>
       <div className="step-list">
         {steps.map((step) => (
-          <div className={`step-row ${step.status === "error" ? "step-error" : step.usedLLM ? "step-llm" : "step-local"}`} key={step.id}>
+          <div
+            className={`step-row ${step.status === "error" ? "step-error" : step.usedLLM ? "step-llm" : "step-local"}`}
+            key={step.id}
+          >
             <div className="step-info">
               <strong>{step.name}</strong>
               <span>{step.skillName || step.action}</span>
-              {step.thought && <small><b>Thought</b>：{step.thought}</small>}
-              {step.action && <small><b>Action</b>：{step.action}</small>}
+              {step.thought && (
+                <small>
+                  <b>Thought</b>：{step.thought}
+                </small>
+              )}
+              {step.action && (
+                <small>
+                  <b>Action</b>：{step.action}
+                </small>
+              )}
             </div>
             <div className="step-meta">
-              <span className={`step-badge ${step.status === "running" ? "badge-running" : step.usedLLM ? "badge-ai" : "badge-local"}`}>
+              <span
+                className={`step-badge ${step.status === "running" ? "badge-running" : step.usedLLM ? "badge-ai" : "badge-local"}`}
+              >
                 {step.status === "running" ? "运行中" : step.usedLLM ? "AI" : "本地"}
               </span>
-              <small><b>Observation</b>：{step.observation || step.outputSummary || "等待结果"}</small>
+              <small>
+                <b>Observation</b>：{step.observation || step.outputSummary || "等待结果"}
+              </small>
             </div>
           </div>
         ))}
@@ -64,11 +80,15 @@ function ResultBlock({ result }: { result: AgentResult }) {
             </div>
             <div className="llm-usage-item">
               <span className="llm-usage-label">AI 步骤</span>
-              <span className="llm-usage-value">{llmSteps.length} / {result.steps.length}</span>
+              <span className="llm-usage-value">
+                {llmSteps.length} / {result.steps.length}
+              </span>
             </div>
             <div className="llm-usage-item">
               <span className="llm-usage-label">本地步骤</span>
-              <span className="llm-usage-value">{localSteps.length} / {result.steps.length}</span>
+              <span className="llm-usage-value">
+                {localSteps.length} / {result.steps.length}
+              </span>
             </div>
           </div>
         </section>
@@ -79,7 +99,9 @@ function ResultBlock({ result }: { result: AgentResult }) {
           <h2>执行结果</h2>
           <p>{result.finalAnswer}</p>
           <div className="recommendations">
-            {result.recommendations.map((item) => <span key={item}>{item}</span>)}
+            {result.recommendations.map((item) => (
+              <span key={item}>{item}</span>
+            ))}
           </div>
         </section>
       )}
@@ -113,7 +135,12 @@ function PendingResult({ steps, partial }: { steps: AgentStepLog[]; partial: Par
   );
 }
 
-export default function Dashboard({ conversationId, onConversationCreated, onConversationUpdated }: Props) {
+export default function Dashboard({
+  conversationId,
+  initialInput,
+  onConversationCreated,
+  onConversationUpdated
+}: Props) {
   const [input, setInput] = useState("");
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -139,7 +166,13 @@ export default function Dashboard({ conversationId, onConversationCreated, onCon
     }
   }
 
-  useEffect(() => { void loadConversation(conversationId); }, [conversationId]);
+  useEffect(() => {
+    void loadConversation(conversationId);
+  }, [conversationId]);
+
+  useEffect(() => {
+    if (initialInput) setInput(initialInput);
+  }, [initialInput]);
 
   const title = conversation?.title || "新对话";
 
@@ -184,7 +217,7 @@ export default function Dashboard({ conversationId, onConversationCreated, onCon
           if (event.type === "step" || event.type === "observation") upsertLiveStep(event.step);
           if (event.type === "partial") setPartialResult(event.result);
         },
-        async onDone(event) {
+        async onDone() {
           setLoading(false);
           controllerRef.current = null;
           await loadConversation(id);
@@ -224,7 +257,8 @@ export default function Dashboard({ conversationId, onConversationCreated, onCon
           </div>
         )}
         {messages.map((message, index) => {
-          const isPendingAssistant = loading && index === messages.length - 1 && message.role === "assistant" && !message.runResult;
+          const isPendingAssistant =
+            loading && index === messages.length - 1 && message.role === "assistant" && !message.runResult;
           return (
             <article className={`message ${message.role}`} key={message.id}>
               <div className="message-head">

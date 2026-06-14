@@ -13,10 +13,19 @@
     "dev:web": "npm run dev -w apps/web",
     "build": "npm run build -w apps/server && npm run build -w apps/web",
     "typecheck": "npm run typecheck -w apps/server && npm run typecheck -w apps/web",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "benchmark": "npm run benchmark -w apps/server --",
     "test": "npm run test -w apps/server"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@typescript-eslint/eslint-plugin": "^8.61.0",
+    "@typescript-eslint/parser": "^8.61.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^10.5.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "prettier": "^3.8.4"
   }
 }

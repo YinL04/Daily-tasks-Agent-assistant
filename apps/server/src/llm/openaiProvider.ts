@@ -33,22 +33,30 @@ export class OpenAICompatibleProvider implements LLMProvider {
         },
         body: JSON.stringify({
           model: this.config.model,
-          messages: [
-            { role: "user", content: "请回复「连接成功」四个字。" }
-          ],
+          messages: [{ role: "user", content: "请回复「连接成功」四个字。" }],
           max_tokens: 20
         })
       });
       const latencyMs = Date.now() - start;
       if (!response.ok) {
         const detail = await response.text().catch(() => "");
-        return { ok: false, model: this.config.model, latencyMs, error: `HTTP ${response.status}: ${detail.slice(0, 100)}` };
+        return {
+          ok: false,
+          model: this.config.model,
+          latencyMs,
+          error: `HTTP ${response.status}: ${detail.slice(0, 100)}`
+        };
       }
       const data = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
       const content = data.choices?.[0]?.message?.content ?? "";
       return { ok: true, model: this.config.model, latencyMs, error: content ? undefined : "Empty response" };
     } catch (error) {
-      return { ok: false, model: this.config.model, latencyMs: Date.now() - start, error: error instanceof Error ? error.message : String(error) };
+      return {
+        ok: false,
+        model: this.config.model,
+        latencyMs: Date.now() - start,
+        error: error instanceof Error ? error.message : String(error)
+      };
     }
   }
 
@@ -63,7 +71,10 @@ export class OpenAICompatibleProvider implements LLMProvider {
       body: JSON.stringify({
         model: this.config.model,
         messages: [
-          { role: "system", content: "你是一个严谨的中文个人事务规划 Agent。请优先返回结构化、可执行、不过度臆测的结果。" },
+          {
+            role: "system",
+            content: "你是一个严谨的中文个人事务规划 Agent。请优先返回结构化、可执行、不过度臆测的结果。"
+          },
           { role: "user", content: prompt }
         ],
         temperature: options.temperature ?? 0.2,
@@ -80,7 +91,10 @@ export class OpenAICompatibleProvider implements LLMProvider {
 
   private parseJSON<T>(raw: string): T {
     // Strip markdown code fences: ```json ... ``` or ``` ... ```
-    let cleaned = raw.replace(/```(?:json|JSON)?\s*\n?/g, "").replace(/```\s*$/gm, "").trim();
+    let cleaned = raw
+      .replace(/```(?:json|JSON)?\s*\n?/g, "")
+      .replace(/```\s*$/gm, "")
+      .trim();
 
     // Extract JSON array or object
     const jsonMatch = cleaned.match(/\{[\s\S]*\}|\[[\s\S]*\]/);

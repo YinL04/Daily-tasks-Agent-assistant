@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import path from "node:path";
+import fs from "node:fs";
 import agentRoutes from "./routes/agent.routes.js";
 import memoryRoutes from "./routes/memory.routes.js";
 import filesRoutes from "./routes/files.routes.js";
@@ -9,6 +10,9 @@ import skillsRoutes from "./routes/skills.routes.js";
 import historyRoutes from "./routes/history.routes.js";
 import calendarRoutes from "./routes/calendar.routes.js";
 import conversationRoutes from "./routes/conversation.routes.js";
+import templateRoutes from "./routes/template.routes.js";
+import goalRoutes from "./routes/goal.routes.js";
+import reviewRoutes from "./routes/review.routes.js";
 import { ensureStorage } from "./storage/db.js";
 import { authMiddleware } from "./middleware/auth.js";
 import { ZodError } from "zod";
@@ -39,11 +43,28 @@ app.use("/api/skills", skillsRoutes);
 app.use("/api/runs", historyRoutes);
 app.use("/api/calendar", calendarRoutes);
 app.use("/api/conversations", conversationRoutes);
+app.use("/api/templates", templateRoutes);
+app.use("/api/goals", goalRoutes);
+app.use("/api/reviews", reviewRoutes);
+
+const webDist = path.resolve(process.cwd(), "apps/web/dist");
+if (fs.existsSync(path.join(webDist, "index.html"))) {
+  app.use(express.static(webDist));
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api")) return next();
+    res.sendFile(path.join(webDist, "index.html"), (error) => {
+      if (error) next(error);
+    });
+  });
+}
 
 app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  const message = error instanceof ZodError
-    ? error.issues.map((issue) => issue.message).join("; ")
-    : error instanceof Error ? error.message : "Unknown error";
+  const message =
+    error instanceof ZodError
+      ? error.issues.map((issue) => issue.message).join("; ")
+      : error instanceof Error
+        ? error.message
+        : "Unknown error";
   const status = error instanceof ZodError || (error instanceof Error && error.name === "ValidationError") ? 400 : 500;
   res.status(status).json({ error: message });
 });

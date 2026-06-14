@@ -21,10 +21,10 @@ test("ConversationStore creates conversations and stores ordered messages", asyn
   assert.ok(saved);
   assert.equal(saved.title, "帮我规划 TypeScript 学习");
   assert.equal(saved.messages.length, 2);
-  assert.deepEqual(saved.messages.map((message) => message.content), [
-    "帮我规划 TypeScript 学习",
-    "预算改成 500"
-  ]);
+  assert.deepEqual(
+    saved.messages.map((message) => message.content),
+    ["帮我规划 TypeScript 学习", "预算改成 500"]
+  );
 
   const recent = await store.getRecentMessages(conversation.id, 1);
   assert.equal(recent.length, 1);

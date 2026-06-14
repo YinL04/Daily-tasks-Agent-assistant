@@ -8,11 +8,13 @@ import { rateLimit } from "../middleware/rateLimit.js";
 const router = Router();
 const runSchema = z.object({
   input: z.string().trim().min(1, "请输入要规划的事务或目标。").max(5000, "输入不能超过 5000 字。"),
-  options: z.object({
-    generateFiles: z.boolean().optional(),
-    generateCalendar: z.boolean().optional(),
-    useMemory: z.boolean().optional()
-  }).optional(),
+  options: z
+    .object({
+      generateFiles: z.boolean().optional(),
+      generateCalendar: z.boolean().optional(),
+      useMemory: z.boolean().optional()
+    })
+    .optional(),
   conversationId: z.string().uuid().optional(),
   stream: z.boolean().optional()
 });
@@ -43,10 +45,12 @@ router.post("/run", rateLimit(10), async (req, res, next) => {
     res.writeHead(200, {
       "Content-Type": "text/event-stream; charset=utf-8",
       "Cache-Control": "no-cache, no-transform",
-      "Connection": "keep-alive",
+      Connection: "keep-alive",
       "X-Accel-Buffering": "no"
     });
-    res.write(`event: step\ndata: ${JSON.stringify({ type: "step", step: { id: "0", name: "Agent queued", status: "running", inputSummary: "等待执行", startedAt: new Date().toISOString() } })}\n\n`);
+    res.write(
+      `event: step\ndata: ${JSON.stringify({ type: "step", step: { id: "0", name: "Agent queued", status: "running", inputSummary: "等待执行", startedAt: new Date().toISOString() } })}\n\n`
+    );
 
     try {
       await agent.run(body.input, body.options, body.conversationId, {

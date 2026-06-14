@@ -14,16 +14,18 @@ test("a ReAct run has complete Thought, Action and Observation coverage", async 
     name: "task_decomposer",
     description: "mock task decomposer",
     async execute(goal) {
-      return [{
-        id: "task-1",
-        title: `规划 ${goal}`,
-        description: "把目标拆成一个可执行任务。",
-        priority: "high",
-        estimatedMinutes: 45,
-        dependencies: [],
-        tags: ["planning"],
-        status: "todo"
-      }];
+      return [
+        {
+          id: "task-1",
+          title: `规划 ${goal}`,
+          description: "把目标拆成一个可执行任务。",
+          priority: "high",
+          estimatedMinutes: 45,
+          dependencies: [],
+          tags: ["planning"],
+          status: "todo"
+        }
+      ];
     }
   };
 
@@ -31,15 +33,17 @@ test("a ReAct run has complete Thought, Action and Observation coverage", async 
     name: "calendar_planner",
     description: "mock calendar planner",
     async execute(tasks) {
-      return [{
-        id: "event-1",
-        taskId: tasks[0].id,
-        title: tasks[0].title,
-        start: "2026-05-17T09:00:00.000Z",
-        end: "2026-05-17T09:45:00.000Z",
-        priority: tasks[0].priority,
-        description: tasks[0].description
-      }];
+      return [
+        {
+          id: "event-1",
+          taskId: tasks[0].id,
+          title: tasks[0].title,
+          start: "2026-05-17T09:00:00.000Z",
+          end: "2026-05-17T09:45:00.000Z",
+          priority: tasks[0].priority,
+          description: tasks[0].description
+        }
+      ];
     }
   };
 
@@ -69,19 +73,13 @@ test("a ReAct run has complete Thought, Action and Observation coverage", async 
   assert.equal(finalAnswer, "已生成 1 个任务和 1 个日历事件。");
   assert.equal(harness.logs.length, 3);
 
-  const allStepsHaveReactFields = harness.logs.every((step) =>
-    hasMeaningfulText(step.thought) &&
-    hasMeaningfulText(step.action) &&
-    hasMeaningfulText(step.observation)
+  const allStepsHaveReactFields = harness.logs.every(
+    (step) => hasMeaningfulText(step.thought) && hasMeaningfulText(step.action) && hasMeaningfulText(step.observation)
   );
   assert.equal(allStepsHaveReactFields, true);
 
   const observationsMatchOutputs = harness.logs.map((step) => step.observation);
-  assert.deepEqual(observationsMatchOutputs, [
-    "输出 1 条结果",
-    "输出 1 条结果",
-    "输出结构化结果"
-  ]);
+  assert.deepEqual(observationsMatchOutputs, ["输出 1 条结果", "输出 1 条结果", "输出结构化结果"]);
 
   const actions = harness.logs.map((step) => step.action);
   assert.deepEqual(actions, ["task_decomposer", "calendar_planner", "final_answer"]);
@@ -92,7 +90,7 @@ test("a classic ReAct trace can follow a model-selected tool order", async () =>
   const selectedActions = ["task_decomposer", "url_collector", "priority_sorter"] as const;
   const completed: string[] = [];
 
-  const tools: Record<typeof selectedActions[number], Skill<string, string[]>> = {
+  const tools: Record<(typeof selectedActions)[number], Skill<string, string[]>> = {
     task_decomposer: {
       name: "task_decomposer",
       description: "mock task decomposition",
@@ -131,11 +129,10 @@ test("a classic ReAct trace can follow a model-selected tool order", async () =>
     completed.push(output[0]);
   }
 
-  assert.deepEqual(harness.logs.map((step) => step.action), [...selectedActions]);
-  assert.deepEqual(completed, [
-    "tasks for 准备演示",
-    "urls for 准备演示",
-    "sorted 准备演示"
-  ]);
+  assert.deepEqual(
+    harness.logs.map((step) => step.action),
+    [...selectedActions]
+  );
+  assert.deepEqual(completed, ["tasks for 准备演示", "urls for 准备演示", "sorted 准备演示"]);
   assert.ok(harness.logs.every((step) => step.thought?.includes("自主选择")));
 });

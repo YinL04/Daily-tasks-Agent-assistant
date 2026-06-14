@@ -8,6 +8,7 @@
     "start": "node dist/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "benchmark": "node --import tsx src/benchmarks/personalPlanningBenchmark.ts",
+    "migrate:sqlite": "node --import tsx src/storage/sqliteMigration.ts",
     "test": "node --import tsx --test src/__tests__/*.test.ts"
   },
   "dependencies": {

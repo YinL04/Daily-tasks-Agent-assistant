@@ -18,7 +18,14 @@ function parseFrontMatter(raw: string) {
   const attrs = new Map<string, string>();
   for (const line of match[1].split(/\r?\n/)) {
     const [key, ...rest] = line.split(":");
-    if (key && rest.length) attrs.set(key.trim(), rest.join(":").trim().replace(/^["']|["']$/g, ""));
+    if (key && rest.length)
+      attrs.set(
+        key.trim(),
+        rest
+          .join(":")
+          .trim()
+          .replace(/^["']|["']$/g, "")
+      );
   }
   return { attrs, body: match[2] };
 }
@@ -46,7 +53,10 @@ export function loadMarkdownSkill(filename: string): MarkdownSkillDefinition {
   };
 }
 
-export function withMarkdownDefinition<I, O>(runtimeSkill: Skill<I, O>, filename: string): Skill<I, O> & { definition: MarkdownSkillDefinition } {
+export function withMarkdownDefinition<I, O>(
+  runtimeSkill: Skill<I, O>,
+  filename: string
+): Skill<I, O> & { definition: MarkdownSkillDefinition } {
   const definition = loadMarkdownSkill(filename);
   return {
     ...runtimeSkill,

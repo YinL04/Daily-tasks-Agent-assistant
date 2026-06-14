@@ -1,0 +1,15 @@
+services:
+  personal-agent-planner:
+    build: .
+    ports:
+      - "8787:8787"
+    environment:
+      PORT: 8787
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL_ID: ${LLM_MODEL_ID:-gpt-4o-mini}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://api.openai.com/v1}
+      AUTH_TOKEN: ${AUTH_TOKEN:-}
+    volumes:
+      - ./data:/app/data
+      - ./generated:/app/generated
+    restart: unless-stopped

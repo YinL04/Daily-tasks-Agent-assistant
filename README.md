@@ -2,9 +2,9 @@
 
 一个本地可运行的个人事务规划 Agent。用户输入自然语言目标、待办、旅行准备、学习计划、链接或文件需求后，系统会构建上下文，检索长期记忆，并通过经典 ReAct 循环让 LLM 在每一轮从可用工具中选择下一步 Action；工具执行后产生 Observation，再回到模型继续决策。
 
-v2.0 已经从“一次性规划工作台”升级为“会话式个人事务 Agent”：支持多轮对话、流式执行反馈、会话历史注入、可中断运行和更紧凑的前端布局。
+v2 大版本已经从“一次性规划工作台”升级为“会话式个人事务 Agent”：支持多轮对话、流式执行反馈、会话历史注入、可中断运行、记忆管理、场景模板、长期目标、周期复盘、日历导入导出、生成文件清理和本地部署工程化。
 
-## 本次 v2.0 更新
+## 本次 v2 更新
 
 - 新增会话系统：支持创建会话、会话列表、消息持久化、assistant 结果写回同一会话。
 - 支持多轮上下文：`AgentContext` 会注入最近会话历史，用户可以在后续消息里说“预算改一下”“换成下周”。
@@ -14,8 +14,15 @@ v2.0 已经从“一次性规划工作台”升级为“会话式个人事务 Ag
 - 前端改成聊天式界面：左侧会话列表，中间消息流，底部输入框。
 - LLM 状态收纳到左侧小框：主内容区不再被大状态面板占用。
 - 日历收进二级菜单：左侧 `工作台 -> 日历` 单独打开，不再占据对话首屏。
+- 记忆分层：支持 pending、active、archived，以及 working/long 层级、命中次数和确认/归档。
+- LLM Top-K 记忆筛选：配置可用 LLM 时优先使用模型挑选相关记忆，失败时降级到关键词打分。
+- 场景模板：内置学习计划、旅行准备、项目冲刺、周期复盘，也支持自定义模板并回填到对话。
+- 长期目标与周期复盘：支持记录跨周目标、复盘摘要和下周期行动。
+- 日历导入导出：支持 ICS 导入和 `personal-agent-calendar.ics` 导出。
+- 生成文件清理：支持删除单个生成文件和按保留天数清理旧文件。
 - 安全加固：输入长度限制、文件下载白名单、健康端点脱敏、可选 `AUTH_TOKEN`、Agent Run 基础 rate limit。
-- 测试补强：新增 `ConversationStore` 测试和 Harness 事件/中断测试。
+- 工程化：新增 Docker、Compose、GitHub Actions、ESLint、Prettier、SQLite 迁移 SQL 导出。
+- 测试补强：后端测试覆盖 Harness、ConversationStore、记忆分层、模板、目标和复盘。
 
 ## 项目亮点
 
@@ -38,6 +45,10 @@ v2.0 已经从“一次性规划工作台”升级为“会话式个人事务 Ag
 - Agent Run 中断支持。
 - LLM 连接状态小型侧边栏展示。
 - 独立日历二级页面。
+- 记忆管理页：确认、编辑、归档、删除。
+- 场景模板页：内置模板和自定义模板。
+- 长期目标与周期复盘页。
+- 生成文件管理页：下载、删除、清理旧文件。
 - OpenAI 兼容 Provider，可通过环境变量替换模型和 base URL。
 - 长期记忆的后端 CRUD、相关记忆检索和自动推断入口。
 - Markdown Skill 定义加载与 TypeScript runtime handler。
@@ -46,9 +57,8 @@ v2.0 已经从“一次性规划工作台”升级为“会话式个人事务 Ag
 
 仍待加强：
 
-- 记忆管理前端页和 pending 确认机制。
 - 更完整的 API 集成测试和前端组件测试。
-- Docker/CI/SQLite 迁移。
+- 真正切换到 SQLite runtime driver，目前已提供 schema/seed SQL 导出。
 
 ## 技术栈
 
@@ -57,6 +67,7 @@ v2.0 已经从“一次性规划工作台”升级为“会话式个人事务 Ag
 - 存储：本地 JSON 文件
 - Agent：Classic ReAct Loop、Context Builder、Conversation Context、Harness、Markdown Skills、LLM Provider
 - LLM：OpenAI Compatible Chat Completions API
+- 工程化：ESLint、Prettier、GitHub Actions、Docker、SQLite migration SQL
 
 ## 架构流程
 
@@ -132,6 +143,7 @@ personal-agent-planner/
   README.md
   .env.example
   package.json
+  .github/workflows/ci.yml
   docs/
     PRD.md
     PRD_V2.md
@@ -139,6 +151,8 @@ personal-agent-planner/
     SKILLS.md
     AGENT_ENGINEERING.md
     QUALITY_EVALUATION.md
+  Dockerfile
+  docker-compose.yml
   apps/
     web/
       src/
@@ -154,6 +168,9 @@ personal-agent-planner/
           conversation.routes.ts
           files.routes.ts
           memory.routes.ts
+          template.routes.ts
+          goal.routes.ts
+          review.routes.ts
         agent/
           context.ts
           planner.ts
@@ -163,6 +180,10 @@ personal-agent-planner/
         storage/
           conversationStore.ts
           calendarStore.ts
+          goalStore.ts
+          reviewStore.ts
+          templateStore.ts
+          sqliteMigration.ts
           runHistoryStore.ts
         skills/
           definitions/
@@ -188,10 +209,12 @@ personal-agent-planner/
   - 会话列表。
   - 工作台一级入口。
   - 工作台二级入口：`对话`、`日历`。
+  - 工作台二级入口：`模板`、`记忆`、`目标`、`文件`。
   - 历史记录。
 - 主区域：
   - 对话页只展示消息流、结构化结果、执行日志和输入框。
   - 日历页单独展示周视图和手动新增/编辑入口。
+  - 管理页用于模板、记忆、长期目标、复盘和生成文件维护。
 
 ## Markdown Skills
 
@@ -223,7 +246,8 @@ output: PlannedTask[]
 - Agent 完成后，assistant 消息和完整 `runResult` 写回会话。
 - `buildContext()` 会把最近消息压缩成 `conversationHistory`。
 - `MemoryManager.retrieveRelevant(input)` 为当前输入检索相关记忆。
-- `maybeInferMemories(input)` 只保存稳定、重复、对未来规划有帮助的信息，并使用较低置信度标记 Agent 推断记忆。
+- `maybeInferMemories(input)` 只保存稳定、重复、对未来规划有帮助的信息，并默认写入 pending。
+- 用户在记忆管理页确认后，记忆才变成 active 并进入后续上下文。
 
 ## 环境变量
 
@@ -235,6 +259,8 @@ LLM_MODEL_ID=模型 ID
 LLM_BASE_URL=https://api.openai.com/v1
 PORT=8787
 AUTH_TOKEN=可选，设置后所有 /api 请求需要 Bearer token
+MEMORY_LLM_TOPK=true
+# 设置 MEMORY_LLM_TOPK=false 时禁用 LLM 记忆筛选，使用关键词打分
 ```
 
 如果没有配置 `LLM_API_KEY`，后端仍会启动，前端也会显示 LLM 未连接状态；但经典 ReAct 的下一步工具选择依赖 LLM，一次有效的 Agent Run 需要配置可用模型。
@@ -265,6 +291,18 @@ Windows PowerShell 如果禁止运行 `npm.ps1`，可以使用：
 npm.cmd run dev
 ```
 
+Docker 启动：
+
+```bash
+docker compose up --build
+```
+
+SQLite 迁移 SQL 导出：
+
+```bash
+npm.cmd run migrate:sqlite -w apps/server
+```
+
 ## API
 
 - `POST /api/agent/run`：运行一次 Agent。支持普通 JSON 响应和 `stream=true` 的 SSE 格式响应。
@@ -277,17 +315,26 @@ npm.cmd run dev
 - `DELETE /api/conversations/:id`：删除会话。
 - `GET /api/files`：列出生成文件。
 - `GET /api/files/:filename`：下载生成文件，带路径白名单校验。
+- `DELETE /api/files/:filename`：删除生成文件。
+- `POST /api/files/cleanup`：按保留天数清理旧文件。
 - `GET /api/skills`：查看已加载 Skill 定义。
 - `GET /api/runs`：查看运行历史摘要。
 - `GET /api/runs/:runId`：查看单次运行详情。
 - `GET /api/calendar`、`POST /api/calendar`、`PATCH /api/calendar/:id`、`DELETE /api/calendar/:id`：读取、新增、编辑和删除本地日历事件。
-- `GET /api/memories`、`POST /api/memories`、`PATCH /api/memories/:id`、`DELETE /api/memories/:id`：后端记忆管理接口。
+- `GET /api/calendar/export.ics`、`POST /api/calendar/import`：导出和导入 ICS 日历。
+- `GET /api/memories`、`POST /api/memories`、`PATCH /api/memories/:id`、`DELETE /api/memories/:id`：记忆管理。
+- `GET /api/memories/stats`、`POST /api/memories/:id/confirm`、`POST /api/memories/:id/archive`：记忆统计、确认、归档。
+- `GET/POST/PATCH/DELETE /api/templates`：场景模板。
+- `GET/POST/PATCH/DELETE /api/goals`：长期目标。
+- `GET/POST/PATCH/DELETE /api/reviews`：周期复盘。
 
 ## 测试与构建
 
 ```bash
 npm.cmd run test
 npm.cmd run typecheck
+npm.cmd run lint
+npm.cmd run format:check
 npm.cmd run build
 ```
 
@@ -297,6 +344,9 @@ npm.cmd run build
 - Harness 事件推送和 abort signal。
 - ReAct trace 字段完整性。
 - ConversationStore 创建、消息写入、摘要列表和删除。
+- MemoryManager pending/active 检索。
+- TemplateStore 内置模板和自定义模板。
+- GoalStore、ReviewStore 长期目标与周期复盘持久化。
 
 ## 示例输入
 

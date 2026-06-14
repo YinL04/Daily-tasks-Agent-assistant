@@ -31,7 +31,7 @@ export const urlCollectorSkill: Skill<AgentContext, UrlReference[]> = {
 ${context.input}
 
 已提取的用户链接（不要重复）：
-${urls.map(u => u.url).join("\n") || "无"}`,
+${urls.map((u) => u.url).join("\n") || "无"}`,
         `[{"title": "网站名称", "url": "https://...", "reason": "推荐理由"}]`,
         { temperature: 0.3, maxTokens: 600 }
       );

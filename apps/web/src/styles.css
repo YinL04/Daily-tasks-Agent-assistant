@@ -13,7 +13,10 @@ body {
   margin: 0;
 }
 
-button, input, textarea, select {
+button,
+input,
+textarea,
+select {
   font: inherit;
 }
 
@@ -118,7 +121,8 @@ button, input, textarea, select {
   margin-bottom: 8px;
 }
 
-.nav.active, .nav:hover {
+.nav.active,
+.nav:hover {
   background: #314232;
   color: #fff;
 }
@@ -166,10 +170,21 @@ button, input, textarea, select {
   overflow: auto;
 }
 
+.conversation-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  gap: 6px;
+  align-items: stretch;
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+}
+
 .conversation-item {
   display: grid;
   gap: 3px;
-  width: 100%;
+  min-width: 0;
   border: 0;
   border-radius: 8px;
   background: transparent;
@@ -177,6 +192,22 @@ button, input, textarea, select {
   padding: 10px;
   text-align: left;
   cursor: pointer;
+}
+
+.conversation-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #aebfa9;
+  cursor: pointer;
+}
+
+.conversation-delete:hover {
+  background: rgba(255, 218, 211, 0.12);
+  color: #ffc3ba;
 }
 
 .conversation-item span {
@@ -191,8 +222,10 @@ button, input, textarea, select {
   color: #aebfa9;
 }
 
-.conversation-item.active,
-.conversation-item:hover {
+.conversation-row.active .conversation-item,
+.conversation-row:hover .conversation-item,
+.conversation-row.active .conversation-delete,
+.conversation-row:hover .conversation-delete {
   background: #314232;
   color: #fff;
 }
@@ -251,7 +284,8 @@ textarea {
   min-width: 118px;
 }
 
-.primary-button, .icon-button {
+.primary-button,
+.icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -390,12 +424,20 @@ textarea {
   color: #284231;
 }
 
-.task-list, .url-list, .file-list, .step-list, .history-list {
+.task-list,
+.url-list,
+.file-list,
+.step-list,
+.history-list {
   display: grid;
   gap: 10px;
 }
 
-.task-row, .url-row, .file-row, .step-row, .history-row {
+.task-row,
+.url-row,
+.file-row,
+.step-row,
+.history-row {
   display: flex;
   gap: 12px;
   align-items: center;
@@ -419,7 +461,8 @@ textarea {
   color: #5d695d;
 }
 
-.task-row p, .url-row p {
+.task-row p,
+.url-row p {
   margin: 5px 0;
   color: #5d695d;
 }
@@ -471,7 +514,9 @@ small {
   color: #647064;
 }
 
-.calendar-actions, .editor-actions, .editor-head {
+.calendar-actions,
+.editor-actions,
+.editor-head {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -487,7 +532,8 @@ small {
   padding: 0 14px;
 }
 
-.today-button, .danger-button {
+.today-button,
+.danger-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -535,7 +581,8 @@ small {
   margin-bottom: 10px;
 }
 
-.day-head button, .day-date {
+.day-head button,
+.day-date {
   border: 0;
   border-radius: 999px;
   background: #e9f1e8;
@@ -586,7 +633,8 @@ small {
   box-shadow: 0 1px 2px rgba(23, 32, 24, 0.06);
 }
 
-.event span, .event small {
+.event span,
+.event small {
   font-size: 12px;
   opacity: 0.78;
 }
@@ -621,7 +669,9 @@ small {
   font-weight: 700;
 }
 
-.editor-grid input, .editor-grid select, .editor-grid textarea {
+.editor-grid input,
+.editor-grid select,
+.editor-grid textarea {
   border: 1px solid #c8d5c5;
   border-radius: 8px;
   padding: 10px;
@@ -648,6 +698,165 @@ small {
   border: 1px solid #ffd2c9;
   border-radius: 8px;
   padding: 10px 12px;
+}
+
+.tool-page {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.stats-row,
+.segmented,
+.inline-form,
+.card-actions,
+.ics-import {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.stats-row span {
+  border: 1px solid #d8e1d5;
+  border-radius: 8px;
+  background: #f8faf6;
+  padding: 8px 10px;
+  font-weight: 700;
+}
+
+.segmented {
+  margin-top: 12px;
+}
+
+.segmented button,
+.card-actions button,
+.button-link,
+.ics-import button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  border: 1px solid #cbd8c8;
+  border-radius: 8px;
+  background: #fff;
+  color: #203124;
+  padding: 0 10px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.segmented button.active {
+  background: #203124;
+  color: #fff;
+  border-color: #203124;
+}
+
+.inline-form {
+  margin-top: 12px;
+}
+
+.inline-form.vertical {
+  display: grid;
+  align-items: stretch;
+}
+
+.inline-form input,
+.inline-form select,
+.inline-form textarea,
+.ics-import textarea,
+.item-card textarea {
+  border: 1px solid #c8d5c5;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fff;
+  min-height: 38px;
+}
+
+.inline-form input {
+  min-width: 180px;
+}
+
+.inline-form textarea {
+  min-height: 84px;
+}
+
+.item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.item-card {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+.item-card p {
+  margin: 0;
+  color: #4f5b4f;
+}
+
+.item-card textarea {
+  width: 100%;
+  min-height: 76px;
+}
+
+.item-head,
+.mini-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.item-head span {
+  border-radius: 999px;
+  background: #eef3eb;
+  color: #36513b;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.danger-text {
+  color: #9b1c1c !important;
+}
+
+.stack-list {
+  display: grid;
+  gap: 10px;
+}
+
+.mini-row {
+  margin-bottom: 0;
+}
+
+.mini-row div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.mini-row strong,
+.mini-row small {
+  overflow-wrap: anywhere;
+}
+
+.button-link {
+  min-height: 34px;
+}
+
+.ics-import {
+  margin-bottom: 14px;
+  align-items: stretch;
+}
+
+.ics-import textarea {
+  flex: 1;
+  min-width: 260px;
+  min-height: 64px;
 }
 
 /* LLM Status Panel */
@@ -727,7 +936,7 @@ small {
 }
 
 .llm-hint code {
-  background: rgba(0,0,0,0.06);
+  background: rgba(0, 0, 0, 0.06);
   padding: 1px 4px;
   border-radius: 3px;
   font-size: 12px;
@@ -870,7 +1079,8 @@ small {
     border-left: 0;
   }
 
-  .input-panel, .two-column {
+  .input-panel,
+  .two-column {
     grid-template-columns: 1fr;
   }
 

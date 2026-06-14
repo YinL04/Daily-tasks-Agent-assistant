@@ -60,7 +60,8 @@ const sampleCases: BenchmarkCase[] = [
   {
     id: "sample-1",
     title: "学习计划",
-    input: "帮我规划下周的学习安排。我想每天学 2 小时 TypeScript，还想周三前完成一个 React 小项目，并生成一个计划文档。",
+    input:
+      "帮我规划下周的学习安排。我想每天学 2 小时 TypeScript，还想周三前完成一个 React 小项目，并生成一个计划文档。",
     options: { generateFiles: false, generateCalendar: true, useMemory: true },
     expectedKeywords: ["TypeScript", "React"],
     minTasks: 3,
@@ -122,23 +123,25 @@ function tryParseJsonCases(markdown: string): BenchmarkCase[] | null {
 }
 
 function normalizeCases(cases: BenchmarkCase[]) {
-  return cases.map((item, index) => {
-    const input = item.input || item.user_input || "";
-    const expectedKeywords = item.expectedKeywords || item.must_cover_keywords;
-    return {
-    ...item,
-    id: item.id || `case-${index + 1}`,
-    title: item.title || item.category || `Case ${index + 1}`,
-    input,
-    expectedKeywords,
-    options: {
-      generateFiles: false,
-      generateCalendar: true,
-      useMemory: true,
-      ...item.options
-    }
-    };
-  }).filter((item) => item.input?.trim());
+  return cases
+    .map((item, index) => {
+      const input = item.input || item.user_input || "";
+      const expectedKeywords = item.expectedKeywords || item.must_cover_keywords;
+      return {
+        ...item,
+        id: item.id || `case-${index + 1}`,
+        title: item.title || item.category || `Case ${index + 1}`,
+        input,
+        expectedKeywords,
+        options: {
+          generateFiles: false,
+          generateCalendar: true,
+          useMemory: true,
+          ...item.options
+        }
+      };
+    })
+    .filter((item) => item.input?.trim());
 }
 
 function parseOptions(section: string): AgentOptions {
@@ -160,13 +163,21 @@ function readField(section: string, labels: string[]) {
   const lineMatch = section.match(new RegExp(`(?:^|\\n)\\s*(?:[-*]\\s*)?(?:${labelPattern})\\s*[:：]\\s*(.+)`, "i"));
   if (lineMatch?.[1]?.trim()) return lineMatch[1].trim();
 
-  const blockMatch = section.match(new RegExp(`(?:^|\\n)\\s*(?:[-*]\\s*)?(?:${labelPattern})\\s*[:：]?\\s*\\n\\s*\`\`\`(?:text)?\\s*\\n([\\s\\S]*?)\`\`\``, "i"));
+  const blockMatch = section.match(
+    new RegExp(
+      `(?:^|\\n)\\s*(?:[-*]\\s*)?(?:${labelPattern})\\s*[:：]?\\s*\\n\\s*\`\`\`(?:text)?\\s*\\n([\\s\\S]*?)\`\`\``,
+      "i"
+    )
+  );
   return blockMatch?.[1]?.trim();
 }
 
 function splitKeywords(value: string | undefined) {
   if (!value) return undefined;
-  return value.split(/[,，、\n]/).map((item) => item.trim()).filter(Boolean);
+  return value
+    .split(/[,，、\n]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function parseMarkdownCases(markdown: string): BenchmarkCase[] {
@@ -185,7 +196,9 @@ function parseMarkdownCases(markdown: string): BenchmarkCase[] {
     const section = markdown.slice(start, end);
     const input = readField(section, ["用户输入", "输入", "User Input", "Prompt", "Input"]);
     if (!input) continue;
-    const expectedKeywords = splitKeywords(readField(section, ["关键词", "Expected Keywords", "must_include", "必须包含"]));
+    const expectedKeywords = splitKeywords(
+      readField(section, ["关键词", "Expected Keywords", "must_include", "必须包含"])
+    );
     cases.push({
       id: headings[i].number ? `case-${headings[i].number}` : `case-${i + 1}`,
       title: headings[i].title || `Case ${i + 1}`,
@@ -253,9 +266,10 @@ function evaluate(result: HarnessRunResult, testCase: BenchmarkCase, durationMs:
     checks.push({
       name: "Covered expected keywords",
       passed: keywordCoverage.coverage >= threshold,
-      detail: keywordCoverage.missing.length === 0
-        ? "all keywords found"
-        : `${keywordCoverage.matched.length}/${expectedKeywords.length} covered; missing: ${keywordCoverage.missing.join(", ")}`
+      detail:
+        keywordCoverage.missing.length === 0
+          ? "all keywords found"
+          : `${keywordCoverage.matched.length}/${expectedKeywords.length} covered; missing: ${keywordCoverage.missing.join(", ")}`
     });
   }
 
@@ -324,18 +338,18 @@ function keywordVariants(keyword: string) {
     "5天": ["五天"],
     "6周": ["六周"],
     "10天": ["十天", "10个晚上", "十个晚上"],
-    "每周8小时": ["每周只有8小时", "每周只投入8小时", "8小时可用"],
-    "ai产品经理": ["ai产品", "产品经理"],
-    "ai项目": ["已有ai项目"],
-    "ai产品": ["ai能力", "ai项目", "ai产品作品"],
-    "测试集": ["数据集", "评测集", "验证集", "benchmark数据"],
-    "评估": ["评测", "评价", "测试", "指标"],
-    "技术能力": ["技术选型", "工程能力", "实现能力", "检索能力", "ai能力"],
-    "现实": ["可行", "不现实", "有效时间", "时间约束", "不要试图"],
-    "取舍": ["优先", "聚焦", "放弃", "只选", "不要试图", "核心"],
-    "澄清": ["明确", "先明确", "梳理", "聚焦"],
-    "学习": ["自我提升", "提升"],
-    "计划": ["行动", "后续", "方向", "拆解"]
+    每周8小时: ["每周只有8小时", "每周只投入8小时", "8小时可用"],
+    ai产品经理: ["ai产品", "产品经理"],
+    ai项目: ["已有ai项目"],
+    ai产品: ["ai能力", "ai项目", "ai产品作品"],
+    测试集: ["数据集", "评测集", "验证集", "benchmark数据"],
+    评估: ["评测", "评价", "测试", "指标"],
+    技术能力: ["技术选型", "工程能力", "实现能力", "检索能力", "ai能力"],
+    现实: ["可行", "不现实", "有效时间", "时间约束", "不要试图"],
+    取舍: ["优先", "聚焦", "放弃", "只选", "不要试图", "核心"],
+    澄清: ["明确", "先明确", "梳理", "聚焦"],
+    学习: ["自我提升", "提升"],
+    计划: ["行动", "后续", "方向", "拆解"]
   };
   for (const alias of semanticAliases[normalized] ?? []) variants.add(alias);
   return [...variants];
@@ -353,7 +367,9 @@ async function runCase(testCase: BenchmarkCase): Promise<CaseResult> {
       passed: false,
       score: 0,
       durationMs: Date.now() - started,
-      checks: [{ name: "Run completed", passed: false, detail: error instanceof Error ? error.message : String(error) }],
+      checks: [
+        { name: "Run completed", passed: false, detail: error instanceof Error ? error.message : String(error) }
+      ],
       metrics: {
         llmConnected: false,
         stepCount: 0,
@@ -450,17 +466,18 @@ function markdownReport(results: CaseResult[]) {
     ...results.flatMap((item) => {
       const failed = item.checks.filter((check) => !check.passed);
       if (failed.length === 0) return [];
-      return [
-        `### ${item.id} ${item.title}`,
-        "",
-        ...failed.map((check) => `- ${check.name}: ${check.detail}`),
-        ""
-      ];
+      return [`### ${item.id} ${item.title}`, "", ...failed.map((check) => `- ${check.name}: ${check.detail}`), ""];
     })
   ].join("\n");
 }
 
-function writeReports(root: string, outputDir: string, cases: BenchmarkCase[], rawOutputs: RawOutput[], results: CaseResult[]) {
+function writeReports(
+  root: string,
+  outputDir: string,
+  cases: BenchmarkCase[],
+  rawOutputs: RawOutput[],
+  results: CaseResult[]
+) {
   fs.mkdirSync(outputDir, { recursive: true });
   const benchmarkDir = path.resolve(root, "benchmark");
   const benchmarkCasesDir = path.join(benchmarkDir, "cases");
@@ -473,7 +490,11 @@ function writeReports(root: string, outputDir: string, cases: BenchmarkCase[], r
   const report = markdownReport(results);
   fs.writeFileSync(jsonPath, JSON.stringify({ cases, rawOutputs, results }, null, 2), "utf8");
   fs.writeFileSync(mdPath, report, "utf8");
-  fs.writeFileSync(path.join(benchmarkCasesDir, "personal_planning_agent_cases.json"), JSON.stringify(cases, null, 2), "utf8");
+  fs.writeFileSync(
+    path.join(benchmarkCasesDir, "personal_planning_agent_cases.json"),
+    JSON.stringify(cases, null, 2),
+    "utf8"
+  );
   fs.writeFileSync(path.join(benchmarkResultsDir, "raw_outputs.json"), JSON.stringify(rawOutputs, null, 2), "utf8");
   fs.writeFileSync(path.join(benchmarkResultsDir, "eval_results.json"), JSON.stringify(results, null, 2), "utf8");
   fs.writeFileSync(path.join(benchmarkResultsDir, "benchmark_report.md"), report, "utf8");

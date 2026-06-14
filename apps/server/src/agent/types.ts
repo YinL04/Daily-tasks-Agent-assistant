@@ -43,6 +43,45 @@ export interface MemoryItem {
   value: string;
   confidence: number;
   source: "user_explicit" | "agent_inferred";
+  status: "pending" | "active" | "archived";
+  layer: "working" | "long";
+  hitCount: number;
+  lastHitAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ScenarioTemplate {
+  id: string;
+  title: string;
+  category: "study" | "travel" | "project" | "health" | "review" | "custom";
+  prompt: string;
+  defaultOptions: AgentOptions;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LongTermGoal {
+  id: string;
+  title: string;
+  description: string;
+  horizon: "monthly" | "quarterly" | "yearly";
+  status: "active" | "paused" | "completed" | "archived";
+  tags: string[];
+  reviewCycle: "weekly" | "monthly";
+  nextReviewAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PeriodicReview {
+  id: string;
+  goalId?: string;
+  title: string;
+  summary: string;
+  wins: string[];
+  blockers: string[];
+  nextActions: string[];
   createdAt: string;
   updatedAt: string;
 }

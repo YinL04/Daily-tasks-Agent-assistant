@@ -97,9 +97,10 @@ function normalizeDecision(value: unknown, allowedActions: ReactAction[]): React
   if (!candidate || typeof candidate !== "object") return null;
   if (!candidate.action || !allowedActions.includes(candidate.action)) return null;
   return {
-    thought: typeof candidate.thought === "string" && candidate.thought.trim()
-      ? candidate.thought.trim()
-      : "根据当前观察选择下一步工具。",
+    thought:
+      typeof candidate.thought === "string" && candidate.thought.trim()
+        ? candidate.thought.trim()
+        : "根据当前观察选择下一步工具。",
     action: candidate.action,
     reason: typeof candidate.reason === "string" ? candidate.reason : undefined,
     finalAnswer: typeof candidate.finalAnswer === "string" ? candidate.finalAnswer : undefined
@@ -208,7 +209,14 @@ export class AgentExecutor {
 
       if (allowedActions.length === 0) break;
 
-      const decision = await this.decideNextAction(context, options, state, availableTools, lastObservation, allowedActions);
+      const decision = await this.decideNextAction(
+        context,
+        options,
+        state,
+        availableTools,
+        lastObservation,
+        allowedActions
+      );
       if (decision.action === "finish") {
         if (decision.finalAnswer?.trim()) state.finalAnswer = decision.finalAnswer.trim();
         break;
@@ -264,23 +272,31 @@ export class AgentExecutor {
     }
   }
 
-  private createToolRuntimes(context: AgentContext, goal: string, options: AgentOptions): ToolRuntime<unknown, unknown>[] {
-    const finalAnswerSkill: Skill<{
-      input: string;
-      tasks: PlannedTask[];
-      events: CalendarEvent[];
-      recommendations: string[];
-      llmAvailable: boolean;
-    }, string> = {
+  private createToolRuntimes(
+    context: AgentContext,
+    goal: string,
+    options: AgentOptions
+  ): ToolRuntime<unknown, unknown>[] {
+    const finalAnswerSkill: Skill<
+      {
+        input: string;
+        tasks: PlannedTask[];
+        events: CalendarEvent[];
+        recommendations: string[];
+        llmAvailable: boolean;
+      },
+      string
+    > = {
       name: "final_answer",
       description: "根据已经观察到的任务、日历和建议生成最终回答。",
-      execute: (payload) => this.generateFinalAnswer(
-        payload.input,
-        payload.tasks,
-        payload.events,
-        payload.recommendations,
-        payload.llmAvailable
-      )
+      execute: (payload) =>
+        this.generateFinalAnswer(
+          payload.input,
+          payload.tasks,
+          payload.events,
+          payload.recommendations,
+          payload.llmAvailable
+        )
     };
 
     return [
@@ -290,7 +306,9 @@ export class AgentExecutor {
         usedLLM: true,
         inputSummary: () => taskDecomposerSkill.definition.input,
         input: () => context,
-        apply: (state, output) => { state.tasks = output as PlannedTask[]; },
+        apply: (state, output) => {
+          state.tasks = output as PlannedTask[];
+        },
         available: (state) => state.tasks.length === 0
       },
       {
@@ -299,7 +317,9 @@ export class AgentExecutor {
         usedLLM: false,
         inputSummary: (state) => `${state.tasks.length} 个任务`,
         input: (state) => state.tasks,
-        apply: (state, output) => { state.tasks = output as PlannedTask[]; },
+        apply: (state, output) => {
+          state.tasks = output as PlannedTask[];
+        },
         available: (state) => state.tasks.length > 0
       },
       {
@@ -308,8 +328,11 @@ export class AgentExecutor {
         usedLLM: false,
         inputSummary: (state) => `${state.tasks.length} 个已排序任务`,
         input: (state) => state.tasks,
-        apply: (state, output) => { state.calendarEvents = output as CalendarEvent[]; },
-        available: (state) => options.generateCalendar !== false && state.tasks.length > 0 && state.calendarEvents.length === 0
+        apply: (state, output) => {
+          state.calendarEvents = output as CalendarEvent[];
+        },
+        available: (state) =>
+          options.generateCalendar !== false && state.tasks.length > 0 && state.calendarEvents.length === 0
       },
       {
         action: "url_collector",
@@ -317,7 +340,9 @@ export class AgentExecutor {
         usedLLM: true,
         inputSummary: () => urlCollectorSkill.definition.input,
         input: () => context,
-        apply: (state, output) => { state.urls = output as UrlReference[]; },
+        apply: (state, output) => {
+          state.urls = output as UrlReference[];
+        },
         available: (state) => state.urls.length === 0
       },
       {
@@ -326,14 +351,17 @@ export class AgentExecutor {
         usedLLM: true,
         inputSummary: (state) => `目标、${state.tasks.length} 个任务、${state.calendarEvents.length} 个日历事件`,
         input: (state) => ({ goal: context.input, tasks: state.tasks, events: state.calendarEvents }),
-        apply: (state, output) => { state.recommendations = output as string[]; },
+        apply: (state, output) => {
+          state.recommendations = output as string[];
+        },
         available: (state) => state.tasks.length > 0 && state.recommendations.length === 0
       },
       {
         action: "final_answer",
         skill: finalAnswerSkill,
         usedLLM: true,
-        inputSummary: (state) => `用户原始输入、${state.tasks.length} 个任务、${state.calendarEvents.length} 个日历事件、${state.recommendations.length} 条建议`,
+        inputSummary: (state) =>
+          `用户原始输入、${state.tasks.length} 个任务、${state.calendarEvents.length} 个日历事件、${state.recommendations.length} 条建议`,
         input: (state) => ({
           input: context.input,
           tasks: state.tasks,
@@ -341,7 +369,9 @@ export class AgentExecutor {
           recommendations: state.recommendations,
           llmAvailable: true
         }),
-        apply: (state, output) => { state.finalAnswer = String(output); },
+        apply: (state, output) => {
+          state.finalAnswer = String(output);
+        },
         available: (state) => state.tasks.length > 0 && state.recommendations.length > 0 && !state.finalAnswer
       },
       {
@@ -358,7 +388,9 @@ export class AgentExecutor {
           urls: state.urls,
           recommendations: state.recommendations
         }),
-        apply: (state, output) => { state.files = output as GeneratedFile[]; },
+        apply: (state, output) => {
+          state.files = output as GeneratedFile[];
+        },
         available: (state) => options.generateFiles !== false && Boolean(state.finalAnswer) && state.files.length === 0
       }
     ];

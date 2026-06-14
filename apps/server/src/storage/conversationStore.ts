@@ -32,9 +32,7 @@ export class ConversationStore {
 
   async list(): Promise<ConversationSummary[]> {
     const conversations = await this.readAll();
-    return conversations
-      .map(toSummary)
-      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    return conversations.map(toSummary).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   }
 
   async get(id: string): Promise<Conversation | undefined> {

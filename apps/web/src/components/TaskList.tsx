@@ -10,7 +10,9 @@ export default function TaskList({ tasks }: { tasks: PlannedTask[] }) {
             <div>
               <strong>{task.title}</strong>
               <p>{task.description}</p>
-              <small>{task.estimatedMinutes} 分钟 · 截止 {task.dueDate || "未设置"} · {task.tags.join(", ")}</small>
+              <small>
+                {task.estimatedMinutes} 分钟 · 截止 {task.dueDate || "未设置"} · {task.tags.join(", ")}
+              </small>
             </div>
             <span className={`badge ${task.priority}`}>{task.priority}</span>
           </article>

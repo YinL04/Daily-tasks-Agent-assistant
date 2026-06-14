@@ -47,17 +47,11 @@ test("AgentHarness records an error as the ReAct observation", async () => {
   };
 
   await assert.rejects(
-    () => harness.runStep(
-      "ReAct: failing action",
-      skill,
-      undefined,
-      "无输入",
-      false,
-      {
+    () =>
+      harness.runStep("ReAct: failing action", skill, undefined, "无输入", false, {
         thought: "验证失败时 observation 是否记录错误。",
         action: "failing_skill"
-      }
-    ),
+      }),
     /工具调用失败/
   );
 
@@ -85,10 +79,11 @@ test("AgentHarness stops execution after the max ReAct step count", async () => 
   });
 
   await assert.rejects(
-    () => harness.runStep("ReAct: second", skill, "blocked", "second input", false, {
-      thought: "这一步应该被最大步数限制拦截。",
-      action: "echo"
-    }),
+    () =>
+      harness.runStep("ReAct: second", skill, "blocked", "second input", false, {
+        thought: "这一步应该被最大步数限制拦截。",
+        action: "echo"
+      }),
     /Agent exceeded max steps: 1/
   );
 
@@ -130,9 +125,6 @@ test("AgentHarness respects abort signals", async () => {
     }
   };
 
-  await assert.rejects(
-    () => harness.runStep("ReAct: echo", skill, "ok", "input", false),
-    /用户中断了 Agent 运行/
-  );
+  await assert.rejects(() => harness.runStep("ReAct: echo", skill, "ok", "input", false), /用户中断了 Agent 运行/);
   assert.equal(harness.logs.length, 0);
 });

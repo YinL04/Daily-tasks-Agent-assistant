@@ -95,17 +95,23 @@ export const fileWriterSkill: Skill<FileWriterInput, GeneratedFile[]> = {
         path: path.join(generatedExportsDir, `tasks-${input.runId}.csv`),
         type: "csv" as const,
         content: [
-          ["title", "description", "priority", "estimatedMinutes", "dueDate", "dependencies", "tags", "status"].map(csvEscape).join(","),
-          ...input.tasks.map((task) => [
-            task.title,
-            task.description,
-            task.priority,
-            task.estimatedMinutes,
-            task.dueDate,
-            task.dependencies.join("; "),
-            task.tags.join("; "),
-            task.status
-          ].map(csvEscape).join(","))
+          ["title", "description", "priority", "estimatedMinutes", "dueDate", "dependencies", "tags", "status"]
+            .map(csvEscape)
+            .join(","),
+          ...input.tasks.map((task) =>
+            [
+              task.title,
+              task.description,
+              task.priority,
+              task.estimatedMinutes,
+              task.dueDate,
+              task.dependencies.join("; "),
+              task.tags.join("; "),
+              task.status
+            ]
+              .map(csvEscape)
+              .join(",")
+          )
         ].join("\n")
       },
       {

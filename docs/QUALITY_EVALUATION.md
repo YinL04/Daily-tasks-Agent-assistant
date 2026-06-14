@@ -22,6 +22,7 @@
 - `apps/server/src/__tests__/agent-harness.test.ts`
 - `apps/server/src/__tests__/conversation-store.test.ts`
 - `apps/server/src/__tests__/react-quality.test.ts`
+- `apps/server/src/__tests__/v2x-features.test.ts`
 
 测试脚本：
 
@@ -163,6 +164,49 @@ AgentHarness stops before the next step when aborted
 - 已完成步骤保留在日志中。
 - 中断错误可被上层路由转换为可读状态。
 
+### 3.10 v2.x 记忆分层
+
+测试名：
+
+```text
+MemoryManager keeps inferred memories pending and retrieves only active memories
+```
+
+验证内容：
+
+- Agent 推断记忆默认进入 `pending`。
+- 用户显式记忆可以写入 `active`。
+- 检索只返回 active 记忆。
+- 记忆统计能反映 pending 数量。
+
+### 3.11 场景模板
+
+测试名：
+
+```text
+TemplateStore combines built-in templates with custom templates
+```
+
+验证内容：
+
+- 内置模板始终可见。
+- 自定义模板可以写入本地 store。
+- 列表会合并内置模板和自定义模板。
+
+### 3.12 长期目标与复盘
+
+测试名：
+
+```text
+GoalStore and ReviewStore persist long-term planning records
+```
+
+验证内容：
+
+- 可以创建长期目标。
+- 可以创建关联目标的周期复盘。
+- 复盘的 nextActions 可以持久化。
+
 ## 4. 当前测试结果
 
 执行命令：
@@ -174,8 +218,8 @@ npm.cmd run test
 最近一次结果：
 
 ```text
-tests 9
-pass 9
+tests 12
+pass 12
 fail 0
 ```
 
@@ -216,6 +260,7 @@ web build passed
 - 会话存储的创建、追加、列表、删除路径有测试覆盖。
 - Agent 可以把最近会话消息注入上下文。
 - Harness 的步骤事件、观察事件、部分结果事件和中断行为有测试覆盖。
+- 记忆 pending/active 检索、场景模板、长期目标和周期复盘有后端测试覆盖。
 - TypeScript 类型检查没有破坏前后端契约。
 
 不能从当前测试推出的结论：
@@ -223,7 +268,7 @@ web build passed
 - 真实 LLM 一定会按最佳工具顺序行动。
 - 每次运行都一定会生成文件。
 - 所有 LLM 依赖工具都有完整本地 fallback。
-- 前端渲染、日历 CRUD 和真实浏览器 E2E 都已经被自动化测试覆盖。
+- 前端渲染、日历 CRUD、文件清理、Docker 构建和真实浏览器 E2E 都已经被自动化测试覆盖。
 
 ## 6. 后续可补充评估
 
@@ -235,3 +280,4 @@ web build passed
 - 前端执行日志渲染测试。
 - 日历 CRUD 的 API 集成测试。
 - 浏览器 E2E：新建会话、连续发送两轮、切换日历二级菜单。
+- Docker 镜像构建和 SQLite seed SQL 校验。

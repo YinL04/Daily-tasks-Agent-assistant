@@ -13,7 +13,9 @@ function cleanString(value: unknown, fallback: string) {
 
 function cleanStringArray(value: unknown) {
   return Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0).map((item) => item.trim())
+    ? value
+        .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+        .map((item) => item.trim())
     : [];
 }
 
@@ -30,20 +32,24 @@ function cleanMinutes(value: unknown) {
 function normalizeTasks(value: unknown): PlannedTask[] {
   const wrapped = value as { tasks?: unknown };
   const rawTasks = Array.isArray(value) ? value : Array.isArray(wrapped?.tasks) ? wrapped.tasks : [];
-  return rawTasks.slice(0, 10).map((task, index) => {
-    const item = task as LLMTask;
-    return {
-      id: randomUUID(),
-      title: cleanString(item.title, `任务 ${index + 1}`),
-      description: cleanString(item.description, "根据用户目标推进此事项。"),
-      priority: cleanPriority(item.priority),
-      estimatedMinutes: cleanMinutes(item.estimatedMinutes),
-      dueDate: typeof item.dueDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(item.dueDate) ? item.dueDate : undefined,
-      dependencies: cleanStringArray(item.dependencies),
-      tags: cleanStringArray(item.tags),
-      status: "todo" as const
-    };
-  }).filter((task) => task.title.trim());
+  return rawTasks
+    .slice(0, 10)
+    .map((task, index) => {
+      const item = task as LLMTask;
+      return {
+        id: randomUUID(),
+        title: cleanString(item.title, `任务 ${index + 1}`),
+        description: cleanString(item.description, "根据用户目标推进此事项。"),
+        priority: cleanPriority(item.priority),
+        estimatedMinutes: cleanMinutes(item.estimatedMinutes),
+        dueDate:
+          typeof item.dueDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(item.dueDate) ? item.dueDate : undefined,
+        dependencies: cleanStringArray(item.dependencies),
+        tags: cleanStringArray(item.tags),
+        status: "todo" as const
+      };
+    })
+    .filter((task) => task.title.trim());
 }
 
 export const taskDecomposerSkill: Skill<AgentContext, PlannedTask[]> = {

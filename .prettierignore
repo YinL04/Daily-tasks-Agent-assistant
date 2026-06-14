@@ -1,0 +1,7 @@
+node_modules
+dist
+apps/*/dist
+data
+generated
+benchmark/results
+package-lock.json

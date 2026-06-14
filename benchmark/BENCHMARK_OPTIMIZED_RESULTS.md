@@ -6,13 +6,13 @@ Run date: 2026-05-23
 
 After relaxing overly strict keyword matching, the benchmark result is:
 
-| Metric | Result |
-| --- | ---: |
-| Total cases | 10 |
-| Passed | 8 |
-| Failed | 2 |
-| Pass rate | 80% |
-| Average score | 80 |
+| Metric        | Result |
+| ------------- | -----: |
+| Total cases   |     10 |
+| Passed        |      8 |
+| Failed        |      2 |
+| Pass rate     |    80% |
+| Average score |     80 |
 
 The first strict evaluation treated every `must_cover_keywords` item as an exact required string. That made several useful outputs fail because of harmless wording differences such as `AI 产品经理` vs `AI产品经理`, `2 周` vs `两周`, or `评估` vs `评测/指标`.
 
@@ -26,18 +26,18 @@ The optimized evaluator keeps structural failures strict, but makes content chec
 
 ## Case Results
 
-| Case | Category | Result | Score | Steps | Tasks | Events | Notes |
-| --- | --- | --- | ---: | ---: | ---: | ---: | --- |
-| `study_001` | 学习规划 | FAIL | 0 | 0 | 0 | 0 | Run failed because an LLM response could not be parsed as JSON. |
-| `study_002` | 学习规划 | PASS | 100 | 6 | 6 | 12 | Produced structured review tasks, schedule, resources, and recommendations. |
-| `career_001` | 求职规划 | PASS | 100 | 6 | 6 | 13 | Covered resume, project packaging, interviews, and delivery cadence. |
-| `career_002` | 求职规划 | PASS | 100 | 6 | 6 | 8 | Covered AI project benchmarking, metrics, resume data, and evaluation work. |
-| `project_001` | 项目规划 | PASS | 100 | 6 | 6 | 20 | Covered RAG football QA assistant planning, retrieval, implementation, and evaluation. |
-| `project_002` | 项目规划 | FAIL | 0 | 0 | 0 | 0 | Run failed because an LLM response could not be parsed as JSON. |
-| `travel_001` | 旅行规划 | PASS | 100 | 6 | 6 | 6 | Covered Tokyo, anime, cafes, city walking, budget, and low-pressure pacing. |
-| `travel_002` | 旅行规划 | PASS | 100 | 6 | 6 | 6 | Covered Kansai route planning across Osaka, Kyoto, and Nara. |
-| `constraint_001` | 复杂约束 | PASS | 100 | 6 | 6 | 15 | Correctly handled limited weekly time, exam week, prioritization, and tradeoffs. |
-| `ambiguous_001` | 模糊输入 | PASS | 100 | 3 | 1 | 0 | Correctly chose a clarification-first strategy instead of forcing a full schedule. |
+| Case             | Category | Result | Score | Steps | Tasks | Events | Notes                                                                                  |
+| ---------------- | -------- | ------ | ----: | ----: | ----: | -----: | -------------------------------------------------------------------------------------- |
+| `study_001`      | 学习规划 | FAIL   |     0 |     0 |     0 |      0 | Run failed because an LLM response could not be parsed as JSON.                        |
+| `study_002`      | 学习规划 | PASS   |   100 |     6 |     6 |     12 | Produced structured review tasks, schedule, resources, and recommendations.            |
+| `career_001`     | 求职规划 | PASS   |   100 |     6 |     6 |     13 | Covered resume, project packaging, interviews, and delivery cadence.                   |
+| `career_002`     | 求职规划 | PASS   |   100 |     6 |     6 |      8 | Covered AI project benchmarking, metrics, resume data, and evaluation work.            |
+| `project_001`    | 项目规划 | PASS   |   100 |     6 |     6 |     20 | Covered RAG football QA assistant planning, retrieval, implementation, and evaluation. |
+| `project_002`    | 项目规划 | FAIL   |     0 |     0 |     0 |      0 | Run failed because an LLM response could not be parsed as JSON.                        |
+| `travel_001`     | 旅行规划 | PASS   |   100 |     6 |     6 |      6 | Covered Tokyo, anime, cafes, city walking, budget, and low-pressure pacing.            |
+| `travel_002`     | 旅行规划 | PASS   |   100 |     6 |     6 |      6 | Covered Kansai route planning across Osaka, Kyoto, and Nara.                           |
+| `constraint_001` | 复杂约束 | PASS   |   100 |     6 |     6 |     15 | Correctly handled limited weekly time, exam week, prioritization, and tradeoffs.       |
+| `ambiguous_001`  | 模糊输入 | PASS   |   100 |     3 |     1 |      0 | Correctly chose a clarification-first strategy instead of forcing a full schedule.     |
 
 ## Remaining Issues
 

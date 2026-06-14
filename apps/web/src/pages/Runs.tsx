@@ -11,7 +11,10 @@ export default function Runs() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    runsApi.list().then(setRuns).catch((err) => setError(err instanceof Error ? err.message : "加载失败"));
+    runsApi
+      .list()
+      .then(setRuns)
+      .catch((err) => setError(err instanceof Error ? err.message : "加载失败"));
   }, []);
 
   async function openRun(runId: string) {
@@ -33,7 +36,10 @@ export default function Runs() {
               <div>
                 <strong>{run.input}</strong>
                 <p>{run.finalAnswer}</p>
-                <small>{new Date(run.createdAt).toLocaleString()} · {run.taskCount} 个任务 · {run.eventCount} 个日历事件 · {run.fileCount} 个文件</small>
+                <small>
+                  {new Date(run.createdAt).toLocaleString()} · {run.taskCount} 个任务 · {run.eventCount} 个日历事件 ·{" "}
+                  {run.fileCount} 个文件
+                </small>
               </div>
             </button>
           ))}

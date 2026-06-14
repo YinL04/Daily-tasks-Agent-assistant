@@ -2,7 +2,7 @@
 
 > 日期：2026-06-13  
 > 对象：`docs/PRD_V2.md` 原始草案与 v2.0 落地实现  
-> 结论：原草案方向正确；本轮已完成 v2.0 核心闭环，后续重点应放在记忆可信化、前端/E2E 测试和工程治理。
+> 结论：原草案方向正确；当前已完成 v2 主版本闭环，后续重点应放在前端/E2E 自动化、SQLite runtime driver 和更强隐私审计。
 
 ## 1. 总体评价
 
@@ -38,6 +38,7 @@
 - 增加测试矩阵和质量门槛。
 - 重排里程碑，让前 4 周先完成 v2.0 可用闭环。
 - 结合本轮实现补充 v2.0 已完成项：会话、流式反馈、中断修复、左侧 LLM 状态小框、日历二级菜单、安全加固和 9 个后端核心测试。
+- 结合 v2.1/v2.x 实现补充：记忆分层与管理页、LLM Top-K 记忆筛选、模板、长期目标、复盘、文件清理、ICS 导入导出、Docker、CI、ESLint/Prettier、SQLite migration SQL 和 12 个后端核心测试。
 
 ## 2.1 本轮 v2.0 已落地的产品变化
 
@@ -79,13 +80,13 @@
 
 优先级建议：
 
-| 优先级 | 工作 | 原因 |
-| --- | --- | --- |
-| P0 | 输入校验、路径遍历防护、stream 错误路径测试 | 直接影响安全和可用性 |
-| P0 | ConversationStore 测试、Agent 集成测试 | 直接保障 v2 核心链路 |
-| P1 | Auth Token、Rate Limit、CI | 本地部署可信度 |
-| P1 | 共享类型整理 | 减少前后端契约漂移 |
-| P2 | Docker、SQLite、文件清理 | 重要但不应阻塞 v2.0 |
+| 优先级 | 工作                                        | 原因                 |
+| ------ | ------------------------------------------- | -------------------- |
+| P0     | 输入校验、路径遍历防护、stream 错误路径测试 | 直接影响安全和可用性 |
+| P0     | ConversationStore 测试、Agent 集成测试      | 直接保障 v2 核心链路 |
+| P1     | Auth Token、Rate Limit、CI                  | 本地部署可信度       |
+| P1     | 共享类型整理                                | 减少前后端契约漂移   |
+| P2     | Docker、SQLite、文件清理                    | 重要但不应阻塞 v2.0  |
 
 ## 4. 具体实施路线
 
@@ -177,6 +178,29 @@
 - Run 只使用 active 记忆。
 - 结果显示 `memoriesUsed`。
 
+当前状态：已完成核心路径。pending/active/archived、确认、编辑、归档、删除和 LLM Top-K 筛选已落地。
+
+### 第 6 阶段：v2.x 扩展能力
+
+交付：
+
+- Dockerfile 和 docker-compose。
+- GitHub Actions CI。
+- ESLint/Prettier。
+- SQLite schema/seed SQL 导出。
+- 生成文件自动清理。
+- ICS 日历导入导出。
+- 场景模板、长期目标、周期复盘。
+
+验收：
+
+- `docker compose up --build` 可构建运行。
+- CI 配置包含 format、lint、typecheck、test、build。
+- `npm run migrate:sqlite -w apps/server` 可生成迁移 SQL。
+- 前端可进入模板、记忆、目标、文件管理页。
+
+当前状态：已完成。
+
 ## 5. PRD 后续还可补强的部分
 
 - 增加 2-3 个完整用户旅程样例，例如“学习计划二轮调整”“旅行预算变更”“项目周报准备”。
@@ -199,10 +223,10 @@
 9. 补齐输入校验和文件下载安全测试。
 10. 更新 README 的 v2 使用说明。
 
-以上 1-10 已在 v2.0 完成或完成核心路径。下一批建议任务：
+以上 1-10 已在 v2.0 完成或完成核心路径。v2.1/v2.x 也已完成核心路径。下一批建议任务：
 
 1. 为前端消息流、停止按钮、日历二级菜单补自动化测试。
 2. 为 conversations 和 agent stream 路由补 API 级测试。
-3. 建立 GitHub Actions，至少执行 typecheck、build、test。
-4. 推进 pending/active/archived 记忆管理页。
-5. 补充 Docker 或本地部署说明。
+3. 为记忆管理、模板、目标、文件清理补前端/E2E 测试。
+4. 接入 SQLite runtime driver，替换或并行 JSON store。
+5. 增加记忆隐私审计和批量导出/清空能力。

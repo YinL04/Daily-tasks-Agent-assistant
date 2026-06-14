@@ -39,6 +39,8 @@ export interface UrlReference {
 export interface GeneratedFile {
   filename: string;
   type: "markdown" | "json" | "csv" | "ics";
+  size?: number;
+  updatedAt?: string;
   downloadUrl: string;
 }
 
@@ -49,6 +51,52 @@ export interface MemoryItem {
   value: string;
   confidence: number;
   source: "user_explicit" | "agent_inferred";
+  status: "pending" | "active" | "archived";
+  layer: "working" | "long";
+  hitCount: number;
+  lastHitAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MemoryStats {
+  total: number;
+  pending: number;
+  active: number;
+  archived: number;
+}
+
+export interface ScenarioTemplate {
+  id: string;
+  title: string;
+  category: "study" | "travel" | "project" | "health" | "review" | "custom";
+  prompt: string;
+  defaultOptions: { generateFiles?: boolean; generateCalendar?: boolean; useMemory?: boolean };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LongTermGoal {
+  id: string;
+  title: string;
+  description: string;
+  horizon: "monthly" | "quarterly" | "yearly";
+  status: "active" | "paused" | "completed" | "archived";
+  tags: string[];
+  reviewCycle: "weekly" | "monthly";
+  nextReviewAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PeriodicReview {
+  id: string;
+  goalId?: string;
+  title: string;
+  summary: string;
+  wins: string[];
+  blockers: string[];
+  nextActions: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -143,9 +191,14 @@ export type AgentRunEvent =
   | { type: "error"; message: string; partialResult?: Partial<AgentResult> };
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  const token = localStorage.getItem("AUTH_TOKEN") || "";
   const response = await fetch(url, {
     ...init,
-    headers: { "Content-Type": "application/json", ...init?.headers }
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...init?.headers
+    }
   });
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
@@ -190,7 +243,11 @@ export function runAgentStream(
 
   void fetch("/api/agent/run", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "Accept": "text/event-stream" },
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "text/event-stream",
+      ...(localStorage.getItem("AUTH_TOKEN") ? { Authorization: `Bearer ${localStorage.getItem("AUTH_TOKEN")}` } : {})
+    },
     body: JSON.stringify({
       input,
       conversationId,
@@ -198,34 +255,36 @@ export function runAgentStream(
       options: { generateFiles: true, generateCalendar: true, useMemory: true }
     }),
     signal: controller.signal
-  }).then(async (response) => {
-    if (!response.ok || !response.body) {
-      const data = await response.json().catch(() => ({}));
-      throw new Error(data.error || response.statusText);
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-
-      const blocks = buffer.split("\n\n");
-      buffer = blocks.pop() || "";
-      for (const block of blocks) {
-        const lines = block.split("\n");
-        const eventType = lines.find((line) => line.startsWith("event: "))?.slice(7) || "message";
-        const data = lines.find((line) => line.startsWith("data: "))?.slice(6);
-        if (data) dispatchStreamEvent(eventType, data, callbacks);
+  })
+    .then(async (response) => {
+      if (!response.ok || !response.body) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || response.statusText);
       }
-    }
-  }).catch((error) => {
-    if (error instanceof DOMException && error.name === "AbortError") return;
-    callbacks.onError(error instanceof Error ? error.message : "运行失败");
-  });
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const blocks = buffer.split("\n\n");
+        buffer = blocks.pop() || "";
+        for (const block of blocks) {
+          const lines = block.split("\n");
+          const eventType = lines.find((line) => line.startsWith("event: "))?.slice(7) || "message";
+          const data = lines.find((line) => line.startsWith("data: "))?.slice(6);
+          if (data) dispatchStreamEvent(eventType, data, callbacks);
+        }
+      }
+    })
+    .catch((error) => {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      callbacks.onError(error instanceof Error ? error.message : "运行失败");
+    });
 
   return controller;
 }
@@ -235,7 +294,13 @@ export function testLLMConnection() {
 }
 
 export const filesApi = {
-  list: () => request<GeneratedFile[]>("/api/files")
+  list: () => request<GeneratedFile[]>("/api/files"),
+  delete: (filename: string) => request<void>(`/api/files/${encodeURIComponent(filename)}`, { method: "DELETE" }),
+  cleanup: (olderThanDays: number) =>
+    request<{ deleted: string[]; count: number }>("/api/files/cleanup", {
+      method: "POST",
+      body: JSON.stringify({ olderThanDays })
+    })
 };
 
 export const runsApi = {
@@ -245,27 +310,100 @@ export const runsApi = {
 
 export const calendarApi = {
   list: () => request<StoredCalendarEvent[]>("/api/calendar"),
-  create: (data: Omit<CalendarEvent, "id" | "taskId"> & { taskId?: string }) => request<StoredCalendarEvent>("/api/calendar", {
-    method: "POST",
-    body: JSON.stringify(data)
-  }),
-  update: (id: string, data: Partial<CalendarEvent>) => request<StoredCalendarEvent>(`/api/calendar/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(data)
-  }),
-  delete: (id: string) => request<void>(`/api/calendar/${id}`, { method: "DELETE" })
+  create: (data: Omit<CalendarEvent, "id" | "taskId"> & { taskId?: string }) =>
+    request<StoredCalendarEvent>("/api/calendar", {
+      method: "POST",
+      body: JSON.stringify(data)
+    }),
+  update: (id: string, data: Partial<CalendarEvent>) =>
+    request<StoredCalendarEvent>(`/api/calendar/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data)
+    }),
+  delete: (id: string) => request<void>(`/api/calendar/${id}`, { method: "DELETE" }),
+  importIcs: (ics: string) =>
+    request<{ imported: StoredCalendarEvent[]; count: number }>("/api/calendar/import", {
+      method: "POST",
+      body: JSON.stringify({ ics })
+    }),
+  exportUrl: "/api/calendar/export.ics"
 };
 
 export const conversationsApi = {
   list: () => request<ConversationSummary[]>("/api/conversations"),
-  create: (title?: string) => request<Conversation>("/api/conversations", {
-    method: "POST",
-    body: JSON.stringify({ title })
-  }),
+  create: (title?: string) =>
+    request<Conversation>("/api/conversations", {
+      method: "POST",
+      body: JSON.stringify({ title })
+    }),
   get: (id: string) => request<Conversation>(`/api/conversations/${id}`),
-  updateTitle: (id: string, title: string) => request<Conversation>(`/api/conversations/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify({ title })
-  }),
+  updateTitle: (id: string, title: string) =>
+    request<Conversation>(`/api/conversations/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ title })
+    }),
   delete: (id: string) => request<void>(`/api/conversations/${id}`, { method: "DELETE" })
+};
+
+export const memoriesApi = {
+  list: () => request<MemoryItem[]>("/api/memories"),
+  stats: () => request<MemoryStats>("/api/memories/stats"),
+  create: (data: Partial<MemoryItem> & Pick<MemoryItem, "key" | "value">) =>
+    request<MemoryItem>("/api/memories", {
+      method: "POST",
+      body: JSON.stringify(data)
+    }),
+  update: (id: string, data: Partial<MemoryItem>) =>
+    request<MemoryItem>(`/api/memories/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data)
+    }),
+  confirm: (id: string) => request<MemoryItem>(`/api/memories/${id}/confirm`, { method: "POST" }),
+  archive: (id: string) => request<MemoryItem>(`/api/memories/${id}/archive`, { method: "POST" }),
+  delete: (id: string) => request<void>(`/api/memories/${id}`, { method: "DELETE" })
+};
+
+export const templatesApi = {
+  list: () => request<ScenarioTemplate[]>("/api/templates"),
+  create: (data: Omit<ScenarioTemplate, "id" | "createdAt" | "updatedAt">) =>
+    request<ScenarioTemplate>("/api/templates", {
+      method: "POST",
+      body: JSON.stringify(data)
+    }),
+  update: (id: string, data: Partial<ScenarioTemplate>) =>
+    request<ScenarioTemplate>(`/api/templates/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data)
+    }),
+  delete: (id: string) => request<void>(`/api/templates/${id}`, { method: "DELETE" })
+};
+
+export const goalsApi = {
+  list: () => request<LongTermGoal[]>("/api/goals"),
+  create: (data: Omit<LongTermGoal, "id" | "createdAt" | "updatedAt">) =>
+    request<LongTermGoal>("/api/goals", {
+      method: "POST",
+      body: JSON.stringify(data)
+    }),
+  update: (id: string, data: Partial<LongTermGoal>) =>
+    request<LongTermGoal>(`/api/goals/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data)
+    }),
+  delete: (id: string) => request<void>(`/api/goals/${id}`, { method: "DELETE" })
+};
+
+export const reviewsApi = {
+  list: () => request<PeriodicReview[]>("/api/reviews"),
+  create: (data: Omit<PeriodicReview, "id" | "createdAt" | "updatedAt">) =>
+    request<PeriodicReview>("/api/reviews", {
+      method: "POST",
+      body: JSON.stringify(data)
+    }),
+  update: (id: string, data: Partial<PeriodicReview>) =>
+    request<PeriodicReview>(`/api/reviews/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data)
+    }),
+  delete: (id: string) => request<void>(`/api/reviews/${id}`, { method: "DELETE" })
 };

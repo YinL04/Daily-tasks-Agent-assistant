@@ -6,15 +6,17 @@ const store = new RunHistoryStore();
 
 router.get("/", async (_req, res) => {
   const history = await store.list();
-  res.json(history.map((item) => ({
-    runId: item.runId,
-    input: item.input,
-    finalAnswer: item.finalAnswer,
-    createdAt: item.createdAt,
-    taskCount: item.tasks.length,
-    eventCount: item.calendarEvents.length,
-    fileCount: item.files.length
-  })));
+  res.json(
+    history.map((item) => ({
+      runId: item.runId,
+      input: item.input,
+      finalAnswer: item.finalAnswer,
+      createdAt: item.createdAt,
+      taskCount: item.tasks.length,
+      eventCount: item.calendarEvents.length,
+      fileCount: item.files.length
+    }))
+  );
 });
 
 router.get("/:runId", async (req, res) => {

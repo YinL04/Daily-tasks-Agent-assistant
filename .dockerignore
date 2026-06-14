@@ -1,0 +1,10 @@
+node_modules
+apps/*/dist
+dist
+data/*.json
+data/sqlite
+generated/plans/*
+generated/exports/*
+.env
+.git
+npm-debug.log*

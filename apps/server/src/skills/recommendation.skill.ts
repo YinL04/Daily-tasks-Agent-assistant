@@ -34,17 +34,25 @@ ${definition.prompt}
 ${input.goal}
 
 任务列表：
-${JSON.stringify(input.tasks.map(t => ({
-        title: t.title,
-        priority: t.priority,
-        estimatedMinutes: t.estimatedMinutes,
-        dueDate: t.dueDate,
-        dependencies: t.dependencies,
-        tags: t.tags
-      })), null, 2)}
+${JSON.stringify(
+  input.tasks.map((t) => ({
+    title: t.title,
+    priority: t.priority,
+    estimatedMinutes: t.estimatedMinutes,
+    dueDate: t.dueDate,
+    dependencies: t.dependencies,
+    tags: t.tags
+  })),
+  null,
+  2
+)}
 
 日历事件：
-${JSON.stringify(input.events.map(e => ({ title: e.title, start: e.start, end: e.end })), null, 2)}
+${JSON.stringify(
+  input.events.map((e) => ({ title: e.title, start: e.start, end: e.end })),
+  null,
+  2
+)}
 
 请生成 4-6 条针对上述具体任务的执行建议。`,
       `["针对具体任务的建议", "针对具体任务的建议", "针对具体任务的建议"]`,
@@ -56,7 +64,9 @@ ${JSON.stringify(input.events.map(e => ({ title: e.title, start: e.start, end: e
       : Array.isArray(wrapped.recommendations)
         ? wrapped.recommendations
         : [];
-    const valid = items.filter((item): item is string => typeof item === "string" && item.trim().length > 0).slice(0, 6);
+    const valid = items
+      .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+      .slice(0, 6);
     if (valid.length === 0) {
       throw new Error("LLM 返回了空建议列表");
     }

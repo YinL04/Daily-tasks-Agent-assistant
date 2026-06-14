@@ -41,7 +41,8 @@ export async function buildContext(
   conversationStore?: ConversationStore,
   conversationId?: string
 ): Promise<AgentContext> {
-  const messages = conversationStore && conversationId ? await conversationStore.getRecentMessages(conversationId, 24) : [];
+  const messages =
+    conversationStore && conversationId ? await conversationStore.getRecentMessages(conversationId, 24) : [];
   return {
     runId: randomUUID(),
     input,
